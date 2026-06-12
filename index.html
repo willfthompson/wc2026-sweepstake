@@ -6,7 +6,7 @@
 <title>World Cup 2026 Sweepstake</title>
 </head>
 <body>
-<!-- World Cup 2026 Sweepstake — office-TV kiosk: rotates through latest results, upcoming games and group tables (bracket + prizes once the knockouts start), auto-updating from openfootball/worldcup.json (public domain, no API key) -->
+<!-- World Cup 2026 Sweepstake — office-TV kiosk: rotates through a yesterday/today/tomorrow day view, latest results, upcoming games and group tables (bracket + prizes once the knockouts start). Standings auto-update from openfootball/worldcup.json (public domain, no API key); in-play scores overlay from worldcup26.ir (community, best-effort). Flags are Twemoji SVGs since Windows has no flag emoji. -->
 <div id="wc-root">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Montserrat:wght@500;600;700;800&display=swap');
@@ -74,9 +74,11 @@
   .mc-team.right{ flex-direction:row-reverse; text-align:right; }
   .mc-flag{ font-size:clamp(28px,6.5vh,72px); line-height:1; flex:none; }
   .mc-flag.dim{ opacity:.3; }
+  /* Flags render as Twemoji SVGs — Windows browsers have no flag emoji glyphs */
+  .flagimg{ width:1em; height:1em; vertical-align:-.12em; }
   .mc-tn{ min-width:0; }
   .mc-name{ display:block; font-size:clamp(17px,3.3vh,40px); font-weight:800; line-height:1.1; }
-  .mc-owner{ display:inline-block; margin-top:.7vh; font-size:clamp(11px,1.9vh,20px); font-weight:800;
+  .mc-owner{ display:inline-block; margin-top:.7vh; font-size:clamp(14px,2.6vh,28px); font-weight:800;
     text-transform:uppercase; letter-spacing:.6px; color:var(--ink-2);
     background:var(--cloud); border:1px solid var(--line); padding:.4vh 1.1vh; border-radius:30px; }
   .mc-owner.none{ opacity:.45; }
@@ -105,7 +107,7 @@
   td.team{ text-align:left; padding-left:1vw; }
   .flag{ font-size:clamp(15px,3vh,32px); margin-right:.6vw; vertical-align:-.15em; }
   .tname{ font-weight:800; font-size:clamp(12px,2.2vh,24px); }
-  .owner{ display:block; font-size:clamp(9px,1.5vh,15px); color:var(--grey); font-weight:700; margin-top:1px; text-transform:uppercase; letter-spacing:.3px; }
+  .owner{ display:block; font-size:clamp(12px,2.1vh,21px); color:var(--ink-2); font-weight:700; margin-top:1px; text-transform:uppercase; letter-spacing:.3px; }
   td.pts{ font-weight:800; font-size:clamp(13px,2.6vh,28px); }
   .pos{ width:2em; font-weight:800; }
   tr.q1 .pos,tr.q2 .pos{ color:var(--good); }
@@ -115,6 +117,31 @@
   tr.q3 .pos::after{ content:'\2022'; color:var(--sun); }
   td.ed,td.pts{ cursor:pointer; border-radius:6px; }
   td.ed:hover,td.pts:hover{ background:rgba(45,107,255,.12); }
+
+  /* ===== Day view (yesterday / today / tomorrow) ===== */
+  .days{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5vw; }
+  .day-col{ background:var(--paper); border:1px solid var(--line); border-radius:18px; overflow:hidden;
+    display:flex; flex-direction:column; min-height:0; box-shadow:0 8px 22px rgba(11,27,51,.06); }
+  .day-col.today{ border:2px solid var(--blue); box-shadow:0 8px 26px rgba(45,107,255,.18); }
+  .day-col h3{ margin:0; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(13px,2.3vh,25px); font-weight:800;
+    color:#fff; padding:1.2vh 1.2vw; display:flex; justify-content:space-between; align-items:baseline; letter-spacing:.5px; }
+  .day-col h3 span{ font-family:'Montserrat',sans-serif; font-size:.75em; font-weight:700; opacity:.85; }
+  .dlist{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; padding:.5vh 0; }
+  .dgame{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:.6vw; padding:1.3vh 1vw; }
+  .dgame+.dgame{ border-top:1px solid var(--cloud); }
+  .dgame.is-live{ background:linear-gradient(90deg,rgba(255,59,92,.07),transparent 30%,transparent 70%,rgba(255,59,92,.07)); }
+  .dteam{ display:flex; align-items:center; gap:.6vw; min-width:0; font-size:clamp(13px,2.2vh,23px); }
+  .dteam.right{ flex-direction:row-reverse; text-align:right; }
+  .dteam b{ display:block; font-weight:800; line-height:1.15; }
+  .dteam .down{ display:block; font-size:clamp(11px,1.8vh,18px); color:var(--ink-2); font-weight:700;
+    text-transform:uppercase; letter-spacing:.3px; }
+  .dmid{ text-align:center; min-width:5em; }
+  .dscore{ display:block; font-weight:800; font-size:clamp(16px,3vh,32px); line-height:1; }
+  .dtime{ display:block; font-weight:800; font-size:clamp(13px,2.4vh,26px); color:var(--grey); }
+  .day-empty{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(12px,2.2vh,24px); padding:4vh 1vw; }
+
+  .live-badge{ display:inline-block; background:var(--bad); color:#fff; font-weight:800; border-radius:20px;
+    padding:.3vh 1vh; font-size:clamp(10px,1.7vh,17px); letter-spacing:1px; animation:p 1.4s ease-in-out infinite; }
 
   /* ===== Knockout bracket ===== */
   .bracket{ flex:1; min-height:0; display:flex; gap:1.6vw; align-items:stretch; }
@@ -132,7 +159,7 @@
   .tie .slot b{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .tie .slot.empty{ color:var(--grey); font-weight:600; }
   .tie .slot.win{ color:var(--good); }
-  .tie .t-owner{ font-style:normal; font-size:.8em; color:var(--grey); font-weight:700; text-transform:uppercase; letter-spacing:.3px; flex:none; }
+  .tie .t-owner{ font-style:normal; font-size:.9em; color:var(--ink-2); font-weight:700; text-transform:uppercase; letter-spacing:.3px; flex:none; }
   .tie .g{ margin-left:auto; font-weight:800; flex:none; }
   .final-col{ justify-content:center; gap:1.4vh; }
   .final{ border-radius:16px; padding:2vh 1vw; text-align:center;
@@ -173,6 +200,11 @@
 </header>
 
 <main id="stage">
+
+  <section class="screen" id="scr-days">
+    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)">&#128338;</span>Yesterday &middot; Today &middot; Tomorrow</h2>
+    <div class="days" id="daysHost"></div>
+  </section>
 
   <section class="screen" id="scr-last">
     <h2 class="scr-title disp"><span class="n" style="background:var(--magenta)">&#9917;</span>Latest results</h2>
@@ -285,6 +317,17 @@
     STATS[t[0]]={pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; TEAM_FLAG[t[0]]=t[1];
   }); });
   var MATCHES=[]; // full feed match list (group + knockout), kept for last/next/bracket screens
+
+  // Flag emoji -> Twemoji SVG <img>. Windows ships no flag emoji glyphs, so raw emoji
+  // shows as "MX"/"ZA" letters there; an image renders everywhere. Falls back to the
+  // emoji text if the CDN is unreachable.
+  var TWEMOJI='https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/';
+  function flagHTML(emoji){
+    if(!emoji) return '';
+    var code=Array.from(emoji).map(function(c){ return c.codePointAt(0).toString(16); })
+      .filter(function(h){ return h!=='fe0f'; }).join('-');
+    return '<img class="flagimg" src="'+TWEMOJI+code+'.svg" alt="'+emoji+'" onerror="this.outerHTML=this.alt">';
+  }
   function gd(s){ return s.gf-s.ga; }
   function rankGroup(g){
     var arr=GROUPS[g].map(function(t){ return {name:t[0],flag:t[1],s:STATS[t[0]]}; });
@@ -302,7 +345,7 @@
         var own=OWNERS[r.name]?'<span class="owner">'+OWNERS[r.name]+'</span>':'<span class="owner" style="opacity:.45">unassigned</span>';
         return '<tr class="'+cls+'" data-team="'+r.name+'">'+
           '<td class="pos">'+(i+1)+'</td>'+
-          '<td class="team"><span class="flag">'+r.flag+'</span><span class="tname">'+r.name+'</span>'+own+'</td>'+
+          '<td class="team"><span class="flag">'+flagHTML(r.flag)+'</span><span class="tname">'+r.name+'</span>'+own+'</td>'+
           '<td class="ed" data-f="pld">'+r.s.pld+'</td>'+
           '<td class="ed" data-f="gf">'+r.s.gf+'</td>'+
           '<td class="ed" data-f="ga">'+r.s.ga+'</td>'+
@@ -380,14 +423,16 @@
     return !!(m.score && m.score.ft && typeof m.score.ft[0]==='number' && typeof m.score.ft[1]==='number');
   }
   function splitMatches(){
-    var played=[], upcoming=[];
+    var played=[], upcoming=[], live=[];
     MATCHES.forEach(function(m){
       if(!m.team1 || !m.team2) return;
-      (hasResult(m)?played:upcoming).push(m);
+      if(m.live) live.push(m);
+      else (hasResult(m)?played:upcoming).push(m);
     });
     function cmp(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); }
-    played.sort(cmp); upcoming.sort(cmp);
-    return { last:played.slice(-3).reverse(), next:upcoming.slice(0,3) };
+    live.sort(cmp); played.sort(cmp); upcoming.sort(cmp);
+    // in-play games lead the results screen, then the freshest finals
+    return { last:live.concat(played.slice(-3).reverse()).slice(0,3), next:upcoming.slice(0,3) };
   }
   function stageTag(m){
     if(!m.group) return 'Knockout';
@@ -395,14 +440,17 @@
     return g.toLowerCase().indexOf('group')===0 ? g : 'Group '+g;
   }
   function teamCellHTML(b,right){
-    var flag=b.flag?'<span class="mc-flag">'+b.flag+'</span>':'<span class="mc-flag dim">⚽</span>';
+    var flag=b.flag?'<span class="mc-flag">'+flagHTML(b.flag)+'</span>':'<span class="mc-flag dim">'+flagHTML('⚽')+'</span>';
     var owner=b.owner?'<span class="mc-owner">'+b.owner+'</span>':'<span class="mc-owner none">unassigned</span>';
     return '<div class="mc-team'+(right?' right':'')+'">'+flag+
       '<div class="mc-tn"><span class="mc-name">'+b.name+'</span>'+owner+'</div></div>';
   }
   function matchCardHTML(m,i){
     var t1=teamBits(m.team1), t2=teamBits(m.team2), mid;
-    if(hasResult(m)){
+    if(m.live){
+      mid='<div class="mc-score disp">'+m.live.s[0]+' – '+m.live.s[1]+'</div>'+
+        '<span class="mc-extra"><span class="live-badge">LIVE '+m.live.min+'</span></span>';
+    }else if(hasResult(m)){
       var s=m.score, extra='';
       if(s.pen) extra='<span class="mc-extra">pens '+s.pen[0]+'–'+s.pen[1]+'</span>';
       else if(s.et) extra='<span class="mc-extra">after extra time</span>';
@@ -428,6 +476,42 @@
     document.getElementById('nextGames').innerHTML = s.next.length
       ? s.next.map(function(m,i){ return matchCardHTML(m,i+3); }).join('')
       : '<div class="empty-card">No upcoming fixtures in the feed.</div>';
+  }
+
+  // ===== Day view: yesterday / today / tomorrow (Amsterdam days) =====
+  var FMT_KEY=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'});
+  function renderDays(){
+    var now=Date.now();
+    var defs=[
+      {lbl:'Yesterday', off:-1, bg:'var(--ink-2)'},
+      {lbl:'Today',     off:0,  bg:'var(--blue)'},
+      {lbl:'Tomorrow',  off:1,  bg:'var(--violet)'}
+    ];
+    var host=document.getElementById('daysHost'); host.innerHTML='';
+    defs.forEach(function(df){
+      var ref=new Date(now+df.off*86400000), key=FMT_KEY.format(ref);
+      var games=MATCHES.filter(function(m){
+        return m.team1 && m.team2 && FMT_KEY.format(matchDate(m))===key;
+      }).sort(function(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); });
+      var rows=games.map(function(m){
+        var t1=teamBits(m.team1), t2=teamBits(m.team2), mid;
+        if(m.live) mid='<span class="dscore">'+m.live.s[0]+'–'+m.live.s[1]+'</span><span class="live-badge">'+m.live.min+'</span>';
+        else if(hasResult(m)) mid='<span class="dscore">'+m.score.ft[0]+'–'+m.score.ft[1]+'</span>';
+        else mid='<span class="dtime">'+kickoff(m).time+'</span>';
+        function side(b,right){
+          return '<div class="dteam'+(right?' right':'')+'">'+flagHTML(b.flag)+
+            '<span><b>'+b.name+'</b>'+
+            (b.owner?'<span class="down">'+b.owner+'</span>':'<span class="down" style="opacity:.4">unassigned</span>')+
+            '</span></div>';
+        }
+        return '<div class="dgame'+(m.live?' is-live':'')+'">'+side(t1)+'<div class="dmid">'+mid+'</div>'+side(t2,true)+'</div>';
+      }).join('');
+      var col=document.createElement('div');
+      col.className='day-col'+(df.off===0?' today':'');
+      col.innerHTML='<h3 style="background:'+df.bg+'">'+df.lbl+'<span>'+FMT_DAY.format(ref)+'</span></h3>'+
+        '<div class="dlist">'+(rows||'<div class="day-empty">No games this day</div>')+'</div>';
+      host.appendChild(col);
+    });
   }
 
   // ===== Knockout phase =====
@@ -456,7 +540,7 @@
   function tieHTML(m,i){
     var t1=teamBits(m.team1), t2=teamBits(m.team2), w=winnerOf(m), res=hasResult(m);
     function slot(b,goals,win){
-      return '<div class="slot'+(win?' win':'')+'">'+(b.flag?'<span>'+b.flag+'</span>':'')+'<b>'+b.name+'</b>'+
+      return '<div class="slot'+(win?' win':'')+'">'+(b.flag?'<span>'+flagHTML(b.flag)+'</span>':'')+'<b>'+b.name+'</b>'+
         (b.owner?'<i class="t-owner">'+b.owner+'</i>':'')+
         (goals!=null?'<span class="g">'+goals+'</span>':'')+'</div>';
     }
@@ -476,7 +560,7 @@
       var r32=kos.slice(0,16), r16=kos.slice(16,24), qf=kos.slice(24,28), sf=kos.slice(28,30);
       var fin=kos.length>=32?kos[31]:null;
       if(fin){ var w=winnerOf(fin); if(w!=null){ var b=teamBits(w===0?fin.team1:fin.team2);
-        champ=(b.flag?b.flag+' ':'')+b.name+(b.owner?' — '+b.owner:''); } }
+        champ=(b.flag?flagHTML(b.flag)+' ':'')+b.name+(b.owner?' — '+b.owner:''); } }
       host.innerHTML=
         '<div class="col"><h4>Round of 32</h4>'+r32.map(tieHTML).join('')+emptyTies(16-r32.length)+'</div>'+
         '<div class="col"><h4>Round of 16</h4>'+r16.map(tieHTML).join('')+emptyTies(8-r16.length)+'</div>'+
@@ -510,6 +594,7 @@
 
   // ===== Screen rotation =====
   var SCREENS=[
+    {id:'scr-days', render:renderDays},
     {id:'scr-last', render:renderLastGames},
     {id:'scr-next', render:renderNextGames},
     {id:'scr-grp-0', group:true},
@@ -546,7 +631,7 @@
   });
 
   function renderAll(){
-    renderGroups(); renderLastGames(); renderNextGames(); renderBracket(); updatePrizes();
+    renderGroups(); renderDays(); renderLastGames(); renderNextGames(); renderBracket(); updatePrizes();
     showScreen(cur); // re-clamps if a phase flip changed the active screen list
   }
 
@@ -608,12 +693,59 @@
       renderAll();
       if(played){ setStatus(true,'🟢 Live — '+played+' group games in, updated '+FMT_TIME.format(new Date())); }
       else { setStatus(true,'🟢 Connected — no group results yet. Scores appear here automatically.'); }
+      pullLive(); // re-apply in-play overlay: the refetch above rebuilt MATCHES and dropped it
     }catch(e){ setStatus(false,'⚠️ Couldn’t load results ('+e.message+'). You can still edit every score by hand.'); }
   }
+
+  // ===== In-play overlay: worldcup26.ir (community-run, no key, CORS-open) =====
+  // Polled every minute. Games in progress get a LIVE badge with the running score;
+  // finished games fill in before the daily openfootball update lands. Entirely
+  // optional — if the site is down, the board just runs on the daily feed.
+  var LIVE_FEED='https://worldcup26.ir/get/games';
+  function liveKey(a,b){ return [a,b].sort().join('|'); }
+  async function pullLive(){
+    try{
+      var res=await fetch(LIVE_FEED,{cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      var data=await res.json();
+      var byTeams={};
+      (data.games||[]).forEach(function(g){
+        var h=matchName(g.home_team_name_en), a=matchName(g.away_team_name_en);
+        if(h&&a) byTeams[liveKey(h,a)]=g;
+      });
+      var changed=false, liveNow=[];
+      MATCHES.forEach(function(m){
+        var t1=matchName(m.team1), t2=matchName(m.team2);
+        if(!t1||!t2) return;
+        var g=byTeams[liveKey(t1,t2)]; if(!g) return;
+        var s1=parseInt(g.home_score,10), s2=parseInt(g.away_score,10);
+        if(isNaN(s1)||isNaN(s2)) return;
+        if(matchName(g.home_team_name_en)!==t1){ var sw=s1; s1=s2; s2=sw; } // feed may flip home/away
+        var st=String(g.time_elapsed||'').toLowerCase();
+        if(st && st!=='notstarted' && st!=='finished'){
+          m.live={ s:[s1,s2], min:/^\d+$/.test(st)?st+'′':st.toUpperCase() };
+          liveNow.push(m); changed=true;
+        }else{
+          if(m.live){ delete m.live; changed=true; }
+          if(st==='finished' && !hasResult(m)){
+            m.score=m.score||{}; m.score.ft=[s1,s2]; changed=true;
+          }
+        }
+      });
+      if(changed){ computeFromMatches(MATCHES); renderAll(); }
+      if(liveNow.length){
+        var m0=liveNow[0], b1=teamBits(m0.team1), b2=teamBits(m0.team2);
+        setStatus(true,'🔴 LIVE — '+b1.name+' '+m0.live.s[0]+'–'+m0.live.s[1]+' '+b2.name+
+          (liveNow.length>1?' +'+(liveNow.length-1)+' more':'')+' · '+FMT_TIME.format(new Date()));
+      }
+    }catch(e){ /* live layer is best-effort; the daily feed keeps working */ }
+  }
+
   document.getElementById('refreshBtn').onclick=pull;
 
   renderAll(); showScreen(0); resetTimer();
-  pull(); setInterval(pull, 5*60000); // refresh every 5 min (source updates ~daily)
+  pull(); setInterval(pull, 5*60000);      // daily-feed refresh every 5 min
+  setInterval(pullLive, 60000);            // in-play scores every minute
 })();
 </script>
 </div>
