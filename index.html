@@ -6,7 +6,7 @@
 <title>World Cup 2026 Sweepstake</title>
 </head>
 <body>
-<!-- World Cup 2026 Sweepstake — office-TV kiosk: rotates through a yesterday/today/tomorrow day view, latest results, upcoming games and group tables (bracket + prizes once the knockouts start). Standings auto-update from openfootball/worldcup.json (public domain, no API key); in-play scores overlay from worldcup26.ir (community, best-effort). Flags are Twemoji SVGs since Windows has no flag emoji. -->
+<!-- World Cup 2026 Sweepstake — office-TV kiosk: rotates through yesterday/today/tomorrow match screens and group tables (bracket + prizes once the knockouts start). Standings auto-update from openfootball/worldcup.json (public domain, no API key); in-play scores overlay from worldcup26.ir (community, best-effort). Flags are Twemoji SVGs since Windows has no flag emoji. -->
 <div id="wc-root">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Montserrat:wght@500;600;700;800&display=swap');
@@ -107,7 +107,9 @@
   td.team{ text-align:left; padding-left:1vw; }
   .flag{ font-size:clamp(15px,3vh,32px); margin-right:.6vw; vertical-align:-.15em; }
   .tname{ font-weight:800; font-size:clamp(12px,2.2vh,24px); }
-  .owner{ display:block; font-size:clamp(12px,2.1vh,21px); color:var(--ink-2); font-weight:700; margin-top:1px; text-transform:uppercase; letter-spacing:.3px; }
+  .owner{ display:table; font-size:clamp(11px,1.9vh,19px); color:var(--ink-2); font-weight:800; margin-top:.4vh;
+    text-transform:uppercase; letter-spacing:.3px;
+    background:var(--cloud); border:1px solid var(--line); padding:.25vh .9vh; border-radius:30px; }
   td.pts{ font-weight:800; font-size:clamp(13px,2.6vh,28px); }
   .pos{ width:2em; font-weight:800; }
   tr.q1 .pos,tr.q2 .pos{ color:var(--good); }
@@ -118,27 +120,17 @@
   td.ed,td.pts{ cursor:pointer; border-radius:6px; }
   td.ed:hover,td.pts:hover{ background:rgba(45,107,255,.12); }
 
-  /* ===== Day view (yesterday / today / tomorrow) ===== */
-  .days{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5vw; }
-  .day-col{ background:var(--paper); border:1px solid var(--line); border-radius:18px; overflow:hidden;
-    display:flex; flex-direction:column; min-height:0; box-shadow:0 8px 22px rgba(11,27,51,.06); }
-  .day-col.today{ border:2px solid var(--blue); box-shadow:0 8px 26px rgba(45,107,255,.18); }
-  .day-col h3{ margin:0; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(13px,2.3vh,25px); font-weight:800;
-    color:#fff; padding:1.2vh 1.2vw; display:flex; justify-content:space-between; align-items:baseline; letter-spacing:.5px; }
-  .day-col h3 span{ font-family:'Montserrat',sans-serif; font-size:.75em; font-weight:700; opacity:.85; }
-  .dlist{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; padding:.5vh 0; }
-  .dgame{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:.6vw; padding:1.3vh 1vw; }
-  .dgame+.dgame{ border-top:1px solid var(--cloud); }
-  .dgame.is-live{ background:linear-gradient(90deg,rgba(255,59,92,.07),transparent 30%,transparent 70%,rgba(255,59,92,.07)); }
-  .dteam{ display:flex; align-items:center; gap:.6vw; min-width:0; font-size:clamp(13px,2.2vh,23px); }
-  .dteam.right{ flex-direction:row-reverse; text-align:right; }
-  .dteam b{ display:block; font-weight:800; line-height:1.15; }
-  .dteam .down{ display:block; font-size:clamp(11px,1.8vh,18px); color:var(--ink-2); font-weight:700;
-    text-transform:uppercase; letter-spacing:.3px; }
-  .dmid{ text-align:center; min-width:5em; }
-  .dscore{ display:block; font-weight:800; font-size:clamp(16px,3vh,32px); line-height:1; }
-  .dtime{ display:block; font-weight:800; font-size:clamp(13px,2.4vh,26px); color:var(--grey); }
-  .day-empty{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(12px,2.2vh,24px); padding:4vh 1vw; }
+  /* ===== Day screens (yesterday / today / tomorrow) ===== */
+  .scr-title .dte{ font-size:.55em; color:var(--grey); font-weight:700; }
+  /* dense variant: a full matchday (up to 6 games) still fits one screen */
+  .cards.dense{ gap:1.2vh; }
+  .cards.dense .match-card{ padding:1.1vh 3vw; border-radius:14px; }
+  .cards.dense .mc-flag{ font-size:clamp(22px,4.2vh,46px); }
+  .cards.dense .mc-name{ font-size:clamp(14px,2.5vh,28px); }
+  .cards.dense .mc-owner{ font-size:clamp(12px,2vh,21px); margin-top:.3vh; }
+  .cards.dense .mc-score{ font-size:clamp(20px,3.8vh,42px); }
+  .cards.dense .mc-when{ font-size:clamp(13px,2.2vh,24px); }
+  .cards.dense .mc-time{ font-size:clamp(11px,1.9vh,20px); }
 
   .live-badge{ display:inline-block; background:var(--bad); color:#fff; font-weight:800; border-radius:20px;
     padding:.3vh 1vh; font-size:clamp(10px,1.7vh,17px); letter-spacing:1px; animation:p 1.4s ease-in-out infinite; }
@@ -159,7 +151,8 @@
   .tie .slot b{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .tie .slot.empty{ color:var(--grey); font-weight:600; }
   .tie .slot.win{ color:var(--good); }
-  .tie .t-owner{ font-style:normal; font-size:.9em; color:var(--ink-2); font-weight:700; text-transform:uppercase; letter-spacing:.3px; flex:none; }
+  .tie .t-owner{ font-style:normal; font-size:.85em; color:var(--ink-2); font-weight:700; text-transform:uppercase; letter-spacing:.3px; flex:none;
+    background:var(--cloud); border:1px solid var(--line); padding:.1vh .7vh; border-radius:20px; }
   .tie .g{ margin-left:auto; font-weight:800; flex:none; }
   .final-col{ justify-content:center; gap:1.4vh; }
   .final{ border-radius:16px; padding:2vh 1vw; text-align:center;
@@ -201,19 +194,19 @@
 
 <main id="stage">
 
-  <section class="screen" id="scr-days">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)">&#128338;</span>Yesterday &middot; Today &middot; Tomorrow</h2>
-    <div class="days" id="daysHost"></div>
+  <section class="screen" id="scr-yday">
+    <h2 class="scr-title disp"><span class="n" style="background:var(--magenta)">&#9194;</span>Yesterday <span class="dte" id="ydayDate"></span></h2>
+    <div class="cards" id="ydayGames"></div>
   </section>
 
-  <section class="screen" id="scr-last">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--magenta)">&#9917;</span>Latest results</h2>
-    <div class="cards" id="lastGames"></div>
+  <section class="screen" id="scr-today">
+    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#9917;</span>Today <span class="dte" id="todayDate"></span></h2>
+    <div class="cards" id="todayGames"></div>
   </section>
 
-  <section class="screen" id="scr-next">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#128467;&#65039;</span>Coming up</h2>
-    <div class="cards" id="nextGames"></div>
+  <section class="screen" id="scr-tmrw">
+    <h2 class="scr-title disp"><span class="n" style="background:var(--violet)">&#9193;</span>Tomorrow <span class="dte" id="tmrwDate"></span></h2>
+    <div class="cards" id="tmrwGames"></div>
   </section>
 
   <section class="screen" id="scr-grp-0">
@@ -422,18 +415,6 @@
   function hasResult(m){
     return !!(m.score && m.score.ft && typeof m.score.ft[0]==='number' && typeof m.score.ft[1]==='number');
   }
-  function splitMatches(){
-    var played=[], upcoming=[], live=[];
-    MATCHES.forEach(function(m){
-      if(!m.team1 || !m.team2) return;
-      if(m.live) live.push(m);
-      else (hasResult(m)?played:upcoming).push(m);
-    });
-    function cmp(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); }
-    live.sort(cmp); played.sort(cmp); upcoming.sort(cmp);
-    // in-play games lead the results screen, then the freshest finals
-    return { last:live.concat(played.slice(-3).reverse()).slice(0,3), next:upcoming.slice(0,3) };
-  }
   function stageTag(m){
     if(!m.group) return 'Knockout';
     var g=String(m.group);
@@ -465,52 +446,26 @@
       '<div class="mc-mid"><span class="mc-tag">'+stageTag(m)+'</span>'+mid+'</div>'+
       teamCellHTML(t2,true)+'</div>';
   }
-  function renderLastGames(){
-    var s=splitMatches();
-    document.getElementById('lastGames').innerHTML = s.last.length
-      ? s.last.map(function(m,i){ return matchCardHTML(m,i); }).join('')
-      : '<div class="empty-card">No results yet — the first games land here automatically. &#9917;</div>';
-  }
-  function renderNextGames(){
-    var s=splitMatches();
-    document.getElementById('nextGames').innerHTML = s.next.length
-      ? s.next.map(function(m,i){ return matchCardHTML(m,i+3); }).join('')
-      : '<div class="empty-card">No upcoming fixtures in the feed.</div>';
-  }
-
-  // ===== Day view: yesterday / today / tomorrow (Amsterdam days) =====
+  // ===== Day screens: yesterday / today / tomorrow (Amsterdam days) =====
   var FMT_KEY=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'});
-  function renderDays(){
+  var DAY_SCREENS=[
+    {off:-1, host:'ydayGames',  date:'ydayDate',  empty:'No games yesterday.'},
+    {off:0,  host:'todayGames', date:'todayDate', empty:'No games today — rest day.'},
+    {off:1,  host:'tmrwGames',  date:'tmrwDate',  empty:'No games tomorrow.'}
+  ];
+  function renderDayScreens(){
     var now=Date.now();
-    var defs=[
-      {lbl:'Yesterday', off:-1, bg:'var(--ink-2)'},
-      {lbl:'Today',     off:0,  bg:'var(--blue)'},
-      {lbl:'Tomorrow',  off:1,  bg:'var(--violet)'}
-    ];
-    var host=document.getElementById('daysHost'); host.innerHTML='';
-    defs.forEach(function(df){
-      var ref=new Date(now+df.off*86400000), key=FMT_KEY.format(ref);
+    DAY_SCREENS.forEach(function(d){
+      var ref=new Date(now+d.off*86400000), key=FMT_KEY.format(ref);
+      document.getElementById(d.date).textContent=FMT_DAY.format(ref);
       var games=MATCHES.filter(function(m){
         return m.team1 && m.team2 && FMT_KEY.format(matchDate(m))===key;
       }).sort(function(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); });
-      var rows=games.map(function(m){
-        var t1=teamBits(m.team1), t2=teamBits(m.team2), mid;
-        if(m.live) mid='<span class="dscore">'+m.live.s[0]+'–'+m.live.s[1]+'</span><span class="live-badge">'+m.live.min+'</span>';
-        else if(hasResult(m)) mid='<span class="dscore">'+m.score.ft[0]+'–'+m.score.ft[1]+'</span>';
-        else mid='<span class="dtime">'+kickoff(m).time+'</span>';
-        function side(b,right){
-          return '<div class="dteam'+(right?' right':'')+'">'+flagHTML(b.flag)+
-            '<span><b>'+b.name+'</b>'+
-            (b.owner?'<span class="down">'+b.owner+'</span>':'<span class="down" style="opacity:.4">unassigned</span>')+
-            '</span></div>';
-        }
-        return '<div class="dgame'+(m.live?' is-live':'')+'">'+side(t1)+'<div class="dmid">'+mid+'</div>'+side(t2,true)+'</div>';
-      }).join('');
-      var col=document.createElement('div');
-      col.className='day-col'+(df.off===0?' today':'');
-      col.innerHTML='<h3 style="background:'+df.bg+'">'+df.lbl+'<span>'+FMT_DAY.format(ref)+'</span></h3>'+
-        '<div class="dlist">'+(rows||'<div class="day-empty">No games this day</div>')+'</div>';
-      host.appendChild(col);
+      var host=document.getElementById(d.host);
+      host.classList.toggle('dense', games.length>3);
+      host.innerHTML=games.length
+        ? games.map(function(m,i){ return matchCardHTML(m,i); }).join('')
+        : '<div class="empty-card">'+d.empty+' &#9917;</div>';
     });
   }
 
@@ -594,9 +549,9 @@
 
   // ===== Screen rotation =====
   var SCREENS=[
-    {id:'scr-days', render:renderDays},
-    {id:'scr-last', render:renderLastGames},
-    {id:'scr-next', render:renderNextGames},
+    {id:'scr-yday', render:renderDayScreens},
+    {id:'scr-today', render:renderDayScreens},
+    {id:'scr-tmrw', render:renderDayScreens},
     {id:'scr-grp-0', group:true},
     {id:'scr-grp-1', group:true},
     {id:'scr-grp-2', group:true},
@@ -631,7 +586,7 @@
   });
 
   function renderAll(){
-    renderGroups(); renderDays(); renderLastGames(); renderNextGames(); renderBracket(); updatePrizes();
+    renderGroups(); renderDayScreens(); renderBracket(); updatePrizes();
     showScreen(cur); // re-clamps if a phase flip changed the active screen list
   }
 
