@@ -453,13 +453,16 @@
     {off:0,  host:'todayGames', date:'todayDate', empty:'No games today — rest day.'},
     {off:1,  host:'tmrwGames',  date:'tmrwDate',  empty:'No games tomorrow.'}
   ];
+  // "Broadcast day": the day rolls over at 06:00 Amsterdam, not midnight — a 03:00
+  // kick-off is still "tonight's game" in everyone's head, so it stays on Today.
+  var DAY_SHIFT=6*3600*1000;
   function renderDayScreens(){
     var now=Date.now();
     DAY_SCREENS.forEach(function(d){
-      var ref=new Date(now+d.off*86400000), key=FMT_KEY.format(ref);
+      var ref=new Date(now-DAY_SHIFT+d.off*86400000), key=FMT_KEY.format(ref);
       document.getElementById(d.date).textContent=FMT_DAY.format(ref);
       var games=MATCHES.filter(function(m){
-        return m.team1 && m.team2 && FMT_KEY.format(matchDate(m))===key;
+        return m.team1 && m.team2 && FMT_KEY.format(new Date(matchDate(m)-DAY_SHIFT))===key;
       }).sort(function(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); });
       var host=document.getElementById(d.host);
       host.classList.toggle('dense', games.length>3);
