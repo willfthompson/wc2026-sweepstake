@@ -117,8 +117,38 @@
   tr.q2 td{ background:linear-gradient(90deg,rgba(16,185,129,.07),transparent); }
   tr.q1 .pos::after,tr.q2 .pos::after{ content:'\2191'; font-size:.7em; }
   tr.q3 .pos::after{ content:'\2022'; color:var(--sun); }
-  td.ed,td.pts{ cursor:pointer; border-radius:6px; }
-  td.ed:hover,td.pts:hover{ background:rgba(45,107,255,.12); }
+
+  /* ===== Overall ranking: all 48 teams in one league table ===== */
+  .rank-sub{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(10px,1.7vh,16px); margin:-.8vh 0 1.6vh; }
+  .rank-cols{ flex:1; min-height:0; display:flex; gap:1.2vw; }
+  .rank-col{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0;
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; overflow:hidden;
+    box-shadow:0 8px 22px rgba(11,27,51,.06); }
+  .rank-tbl{ font-size:clamp(10px,1.6vh,18px); }
+  .rank-tbl tbody td{ padding:.45vh .35vw; }
+  .rank-tbl .flag{ font-size:clamp(12px,2.1vh,22px); margin-right:.5vw; }
+  .rank-tbl .tname{ font-size:clamp(9px,1.45vh,15px); font-weight:700; color:var(--ink-2); }
+  .rank-tbl .owner{ font-size:clamp(11px,1.85vh,18px); font-weight:800; padding:.25vh 1vh; margin-top:.35vh;
+    background:rgba(18,201,192,.16); border-color:rgba(18,201,192,.5); color:#0a6b66; }
+  .rank-tbl tr.qin td{ background:linear-gradient(90deg,rgba(16,185,129,.13),transparent); }
+  .rank-tbl tr.notplayed td{ opacity:.5; }
+  .rank-pos{ display:inline-flex; align-items:center; justify-content:center; min-width:1.9em; height:1.9em;
+    border-radius:8px; font-weight:800; background:var(--cloud); color:var(--ink); }
+  .rank-pos.p1{ background:var(--sun); color:#3a2b00; }
+  .rank-pos.p2{ background:#cfd8e6; color:#2a3550; }
+  .rank-pos.p3{ background:#e6b486; color:#46270d; }
+  .rank-pts{ font-weight:800; font-size:1.3em; }
+  .form{ display:inline-flex; gap:.25em; }
+  .form-chip{ width:1.5em; height:1.5em; border-radius:5px; color:#fff; font-weight:800;
+    display:inline-flex; align-items:center; justify-content:center; font-size:.82em; }
+  .form-chip.w{ background:var(--good); }
+  .form-chip.d{ background:var(--grey); }
+  .form-chip.l{ background:var(--bad); }
+  .qual-badge{ display:inline-block; font-size:.76em; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
+    padding:.25vh .8vh; border-radius:20px; white-space:nowrap; }
+  .qual-badge.auto{ background:var(--good); color:#fff; }
+  .qual-badge.third{ background:rgba(16,185,129,.16); color:#0a7a55; border:1px solid rgba(16,185,129,.55); }
+  .qual-badge.out{ background:var(--cloud); color:var(--grey); }
 
   /* ===== Day screens (yesterday / today / tomorrow) ===== */
   .scr-title .dte{ font-size:.55em; color:var(--grey); font-weight:700; }
@@ -222,6 +252,12 @@
   <section class="screen" id="scr-grp-2">
     <h2 class="scr-title disp"><span class="n" style="background:var(--violet)">3</span>Groups I &ndash; L</h2>
     <div class="groups-4" id="groupsHost2"></div>
+  </section>
+
+  <section class="screen" id="scr-ranking">
+    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)">&#127942;</span>Overall ranking</h2>
+    <div class="rank-sub">All 48 teams in one league table &mdash; green means on track to reach the knockouts if the groups ended now.</div>
+    <div class="rank-cols" id="rankHost"></div>
   </section>
 
   <section class="screen" id="scr-bracket">
@@ -339,9 +375,9 @@
         return '<tr class="'+cls+'" data-team="'+r.name+'">'+
           '<td class="pos">'+(i+1)+'</td>'+
           '<td class="team"><span class="flag">'+flagHTML(r.flag)+'</span><span class="tname">'+r.name+'</span>'+own+'</td>'+
-          '<td class="ed" data-f="pld">'+r.s.pld+'</td>'+
-          '<td class="ed" data-f="gf">'+r.s.gf+'</td>'+
-          '<td class="ed" data-f="ga">'+r.s.ga+'</td>'+
+          '<td>'+r.s.pld+'</td>'+
+          '<td>'+r.s.gf+'</td>'+
+          '<td>'+r.s.ga+'</td>'+
           '<td>'+(gd(r.s)>0?'+':'')+gd(r.s)+'</td>'+
           '<td class="pts" style="color:'+col+'">'+r.s.pts+'</td></tr>';
       }).join('');
@@ -350,22 +386,66 @@
         '<table><thead><tr><th></th><th class="team">Team / owner</th><th>P</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>'+rows+'</tbody></table>';
       hosts[Math.floor(gi/4)].appendChild(d);
     });
-    attachEdit(); paintSpoon();
+    paintSpoon();
   }
 
-  function attachEdit(){
-    root.querySelectorAll('td.ed, td.pts').forEach(function(td){
-      td.title='Click to edit';
-      td.onclick=function(){
-        var tr=td.closest('tr'), team=tr.getAttribute('data-team'), f=td.getAttribute('data-f')||'pts';
-        var cur=(f==='pts')?STATS[team].pts:STATS[team][f];
-        var val=prompt('Set '+f.toUpperCase()+' for '+team, cur);
-        resetTimer(); // a prompt() blocks the rotation tick; don't yank the screen right after closing it
-        if(val===null) return; val=parseInt(val,10); if(isNaN(val)||val<0) return;
-        if(f==='pts'){ STATS[team].pts=val; } else { STATS[team][f]=val; }
-        renderGroups();
-      };
+  // ===== Overall ranking: all 48 teams merged into one league table =====
+  function renderRanking(){
+    var host=document.getElementById('rankHost'); if(!host) return;
+    function cmp(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); }
+
+    // Projected qualification (2026 rule): top 2 of every group + the 8 best 3rd-placed teams.
+    var qual={}, thirds=[];
+    Object.keys(GROUPS).forEach(function(g){
+      var r=rankGroup(g);
+      if(r[0]) qual[r[0].name]='auto';
+      if(r[1]) qual[r[1].name]='auto';
+      if(r[2]) thirds.push(r[2]);
     });
+    thirds.sort(cmp).forEach(function(t,i){ qual[t.name]= i<8 ? 'third' : 'out'; });
+
+    // Form guide: each team's results in match order (finished group games only).
+    var form={}; Object.keys(STATS).forEach(function(n){ form[n]=[]; });
+    MATCHES.filter(function(m){ return m.group && hasResult(m); })
+      .sort(function(a,b){ return matchDate(a)-matchDate(b); })
+      .forEach(function(m){
+        var t1=matchName(m.team1), t2=matchName(m.team2);
+        if(!t1||!t2||!form[t1]||!form[t2]) return;
+        var g1=m.score.ft[0], g2=m.score.ft[1];
+        form[t1].push(g1>g2?'W':g1<g2?'L':'D');
+        form[t2].push(g2>g1?'W':g2<g1?'L':'D');
+      });
+
+    // One big league table across all 48 teams (points, then GD, then goals scored).
+    var teams=Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; }).sort(cmp);
+
+    function rowHTML(t,rank){
+      var st=qual[t.name]||'out', played=t.s.pld>0, gv=gd(t.s);
+      var own=OWNERS[t.name]?'<span class="owner">'+OWNERS[t.name]+'</span>':'<span class="owner" style="opacity:.45">unassigned</span>';
+      var chips=(form[t.name]||[]).map(function(r){ return '<span class="form-chip '+r.toLowerCase()+'">'+r+'</span>'; }).join('');
+      var posCls=rank===1?'p1':rank===2?'p2':rank===3?'p3':'';
+      var badge = !played ? '<span class="qual-badge out">&mdash;</span>'
+                : st==='auto' ? '<span class="qual-badge auto">Through</span>'
+                : st==='third' ? '<span class="qual-badge third">Best 3rd</span>'
+                : '<span class="qual-badge out">Out</span>';
+      var cls=[]; if(played && st!=='out') cls.push('qin'); if(!played) cls.push('notplayed');
+      return '<tr'+(cls.length?' class="'+cls.join(' ')+'"':'')+'>'+
+        '<td><span class="rank-pos '+posCls+'">'+rank+'</span></td>'+
+        '<td class="team"><span class="flag">'+flagHTML(t.flag)+'</span><span class="tname">'+t.name+'</span>'+own+'</td>'+
+        '<td><span class="form">'+chips+'</span></td>'+
+        '<td>'+(played?(gv>0?'+':'')+gv:'&mdash;')+'</td>'+
+        '<td class="rank-pts">'+t.s.pts+'</td>'+
+        '<td>'+badge+'</td></tr>';
+    }
+
+    var html='';
+    for(var c=0;c<3;c++){
+      var rows=teams.slice(c*16,c*16+16).map(function(t,i){ return rowHTML(t,c*16+i+1); }).join('');
+      html+='<div class="rank-col"><table class="rank-tbl">'+
+        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>GD</th><th>Pts</th><th>Through?</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody></table></div>';
+    }
+    host.innerHTML=html;
   }
 
   function ownerTag(t){ return (OWNERS[t]?OWNERS[t]+' ':'')+'('+t+')'; }
@@ -558,6 +638,7 @@
     {id:'scr-grp-0', group:true},
     {id:'scr-grp-1', group:true},
     {id:'scr-grp-2', group:true},
+    {id:'scr-ranking', group:true, render:renderRanking, hold:30000},
     {id:'scr-bracket', ko:true, render:renderBracket},
     {id:'scr-prizes', ko:true}
   ];
@@ -580,8 +661,9 @@
     });
   }
   function resetTimer(){
-    clearInterval(timer);
-    timer=setInterval(function(){ showScreen(cur+1); }, ROTATE_MS);
+    clearTimeout(timer);
+    var act=activeScreens(), hold=(act[cur] && act[cur].hold) || ROTATE_MS; // per-screen dwell, default ROTATE_MS
+    timer=setTimeout(function(){ showScreen(cur+1); resetTimer(); }, hold);
   }
   document.addEventListener('keydown', function(e){
     if(e.key==='ArrowRight'){ showScreen(cur+1); resetTimer(); }
@@ -589,7 +671,7 @@
   });
 
   function renderAll(){
-    renderGroups(); renderDayScreens(); renderBracket(); updatePrizes();
+    renderGroups(); renderRanking(); renderDayScreens(); renderBracket(); updatePrizes();
     showScreen(cur); // re-clamps if a phase flip changed the active screen list
   }
 
