@@ -150,6 +150,35 @@
   .qual-badge.third{ background:rgba(16,185,129,.16); color:#0a7a55; border:1px solid rgba(16,185,129,.55); }
   .qual-badge.out{ background:var(--cloud); color:var(--grey); }
 
+  /* ===== Persistent footer ticker: top/bottom teams + owner standings ===== */
+  #kioskTicker{ flex:none; height:clamp(64px,10vh,108px); display:flex; align-items:center; gap:1.4vw;
+    padding:0 2vw; background:var(--ink); color:#fff; overflow:hidden; box-shadow:0 -6px 18px rgba(11,27,51,.18); }
+  .tk-label{ flex:none; white-space:nowrap; font-family:'Bricolage Grotesque',sans-serif; font-weight:800;
+    font-size:clamp(12px,2vh,22px); letter-spacing:.3px; padding:.6vh 1.4vh; border-radius:30px; background:rgba(255,255,255,.14); }
+  .tk-label.top{ background:var(--magenta); color:#fff; }
+  .tk-label.bot{ background:var(--coral); color:#fff; }
+  .tk-label.own{ background:var(--sun); color:#3a2b00; }
+  .tk-body{ flex:1; min-width:0; display:flex; justify-content:space-around; align-items:center; gap:1vw;
+    overflow:hidden; transition:opacity .4s ease; }
+  .tk-body.tk-scroll{ justify-content:flex-start; gap:0; }   /* continuous news-ticker scroll mode */
+  .tk-track{ flex:none; display:flex; align-items:center; will-change:transform;
+    animation:tkscroll linear infinite; }
+  @keyframes tkscroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  .tk-divider{ flex:none; margin:0 1.6vw 0 .8vw; padding:.5vh 1.3vh; border-radius:30px; white-space:nowrap;
+    font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:clamp(12px,1.9vh,20px); }
+  .tk-divider.top{ background:var(--magenta); color:#fff; }
+  .tk-divider.bot{ background:var(--coral); color:#fff; }
+  .tk-divider.own{ background:var(--sun); color:#3a2b00; }
+  .tk-item{ display:inline-flex; align-items:center; gap:.5vw; white-space:nowrap;
+    font-size:clamp(12px,1.9vh,20px); font-weight:700; }
+  .tk-track .tk-item{ flex:none; margin-right:2.2vw; }
+  .tk-item .flagimg{ width:1.5em; height:1.5em; border-radius:3px; vertical-align:middle; }
+  .tk-rank{ font-weight:800; color:var(--sun); opacity:.85; min-width:1.3em; text-align:right; }
+  .tk-name{ font-weight:700; }
+  .tk-own{ font-size:.78em; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+    padding:.15em .6em; border-radius:20px; background:rgba(255,255,255,.16); color:#fff; }
+  .tk-pts{ font-weight:800; font-size:1.15em; color:var(--lime); }
+
   /* ===== Day screens (yesterday / today / tomorrow) ===== */
   .scr-title .dte{ font-size:.55em; color:var(--grey); font-weight:700; }
   /* dense variant: a full matchday (up to 6 games) still fits one screen */
@@ -209,7 +238,7 @@
 
   .pulse{ animation:p 1.4s ease-in-out infinite; }
   @keyframes p{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
-  @media (prefers-reduced-motion: reduce){ .pulse{animation:none;} .screen{transition:none;} }
+  @media (prefers-reduced-motion: reduce){ .pulse{animation:none;} .screen{transition:none;} .tk-body{transition:none;} .tk-track{animation:none;} }
 </style>
 
 <header id="kioskHead">
@@ -291,6 +320,11 @@
 
 </main>
 
+<aside id="kioskTicker">
+  <span id="tkLabel" class="tk-label"></span>
+  <div id="tkBody" class="tk-body"></div>
+</aside>
+
 <script>
 (function(){
   var root=document.getElementById('wc-root');
@@ -358,6 +392,73 @@
     return '<img class="flagimg" src="'+TWEMOJI+code+'.svg" alt="'+emoji+'" onerror="this.outerHTML=this.alt">';
   }
   function gd(s){ return s.gf-s.ga; }
+
+  // ===== Footer ticker data: top/bottom teams + owner standings =====
+  function sortedTeams(){
+    return Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; })
+      .sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
+  }
+  function ownerStandings(){
+    var agg={};
+    Object.keys(OWNERS).forEach(function(team){
+      var s=STATS[team]; if(!s) return;
+      var a=agg[OWNERS[team]] || (agg[OWNERS[team]]={owner:OWNERS[team], pts:0, gf:0, ga:0});
+      a.pts+=s.pts; a.gf+=s.gf; a.ga+=s.ga;
+    });
+    return Object.keys(agg).map(function(o){ return agg[o]; })
+      .sort(function(a,b){ return b.pts-a.pts || (b.gf-b.ga)-(a.gf-a.ga) || b.gf-a.gf || a.owner.localeCompare(b.owner); });
+  }
+  function tickTeamHTML(t,pos){  // pos = zero-based overall rank
+    var own=OWNERS[t.name] ? '<span class="tk-own">'+OWNERS[t.name]+'</span>' : '';
+    return '<span class="tk-item"><span class="tk-rank">'+(pos+1)+'</span>'+flagHTML(t.flag)+
+      '<span class="tk-name">'+t.name+'</span>'+own+'<span class="tk-pts">'+t.s.pts+'</span></span>';
+  }
+  function tickOwnerHTML(o,i){
+    var d=o.gf-o.ga;
+    return '<span class="tk-item"><span class="tk-rank">'+(i+1)+'</span>'+
+      '<span class="tk-name">'+o.owner+'</span><span class="tk-pts">'+o.pts+'</span>'+
+      '<span class="tk-own">GD '+(d>0?'+':'')+d+'</span></span>';
+  }
+  // Bottom-10 shows true overall positions (e.g. 39–48), least-bad to worst, so the rank numbers stay honest.
+  var TK_FRAMES=[
+    {label:'🔥 Top 10', cls:'top', build:function(){ var a=sortedTeams(); return a.slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }); }},
+    {label:'🥄 Bottom 10', cls:'bot', build:function(){ var a=sortedTeams(); return a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i); }); }},
+    {label:'🏆 Owner standings', cls:'own', build:function(){ return ownerStandings().map(tickOwnerHTML); }}
+  ];
+  var tkFrame=0;
+  function paintTicker(){
+    var f=TK_FRAMES[tkFrame], lbl=document.getElementById('tkLabel'), body=document.getElementById('tkBody');
+    if(!lbl||!body) return;
+    lbl.textContent=f.label; lbl.className='tk-label '+f.cls;
+    body.innerHTML=f.build().join('');
+  }
+  function advanceTicker(){
+    tkFrame=(tkFrame+1)%TK_FRAMES.length;
+    var body=document.getElementById('tkBody'); if(!body){ paintTicker(); return; }
+    body.style.opacity=0;
+    setTimeout(function(){ paintTicker(); body.style.opacity=1; }, 400);
+  }
+  // Continuous news-ticker scroll: one long strip (top → bottom → owners) streaming right-to-left.
+  var reduceMotion=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var lastMarquee='';
+  function buildMarquee(){
+    var host=document.getElementById('tkBody'); if(!host) return;
+    host.classList.add('tk-scroll');
+    var a=sortedTeams();
+    var seg='<span class="tk-divider top">🔥 Top 10</span>'+
+      a.slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }).join('')+
+      '<span class="tk-divider bot">🥄 Bottom 10</span>'+
+      a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i); }).join('')+
+      '<span class="tk-divider own">🏆 Owner standings</span>'+
+      ownerStandings().map(tickOwnerHTML).join('');
+    if(seg===lastMarquee) return;          // unchanged → leave the scroll running, don't restart it
+    lastMarquee=seg;
+    host.innerHTML='<div class="tk-track">'+seg+seg+'</div>'; // duplicated so translateX(-50%) loops seamlessly
+    var track=host.firstChild, oneCopy=track.scrollWidth/2;
+    track.style.animationDuration=Math.max(24,Math.round(oneCopy/90))+'s'; // ~90px/s → constant speed, any length
+  }
+  function refreshTicker(){ if(reduceMotion){ paintTicker(); } else { buildMarquee(); } }
+
   function rankGroup(g){
     var arr=GROUPS[g].map(function(t){ return {name:t[0],flag:t[1],s:STATS[t[0]]}; });
     arr.sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
@@ -672,6 +773,7 @@
 
   function renderAll(){
     renderGroups(); renderRanking(); renderDayScreens(); renderBracket(); updatePrizes();
+    refreshTicker(); // keep the footer ticker in sync with fresh scores
     showScreen(cur); // re-clamps if a phase flip changed the active screen list
   }
 
@@ -784,6 +886,8 @@
   document.getElementById('refreshBtn').onclick=pull;
 
   renderAll(); showScreen(0); resetTimer();
+  if(reduceMotion){ paintTicker(); setInterval(advanceTicker, 12000); } // crossfade fallback when motion is reduced
+  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='📊 Standings'; tkLbl.className='tk-label'; buildMarquee(); }
   pull(); setInterval(pull, 5*60000);      // daily-feed refresh every 5 min
   setInterval(pullLive, 60000);            // in-play scores every minute
 })();
