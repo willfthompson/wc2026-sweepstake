@@ -56,7 +56,7 @@
   #refreshBtn:hover{ background:rgba(255,255,255,.3); }
 
   /* ===== Rotating stage ===== */
-  #stage{ position:relative; flex:1; overflow:hidden; }
+  #stage{ position:relative; flex:1; overflow:hidden; container-type:size; } /* cqh below = stage height, so dense screens auto-fit around header + ticker */
   .screen{ position:absolute; inset:0; padding:2.5vh 3vw 3vh; display:flex; flex-direction:column;
     opacity:0; pointer-events:none; transition:opacity .6s ease; }
   .screen.active{ opacity:1; pointer-events:auto; }
@@ -93,24 +93,24 @@
     padding:7vh 4vw; text-align:center; color:var(--grey); font-weight:700; font-size:clamp(14px,2.6vh,28px); }
 
   /* ===== Group tables (4 per screen) ===== */
-  .groups-4{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2vh 1.5vw; }
+  .groups-4{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2cqh 1.5vw; }
   .grp{ background:var(--paper); border-radius:16px; overflow:hidden; border:1px solid var(--line);
     box-shadow:0 8px 22px rgba(11,27,51,.06); display:flex; flex-direction:column; min-height:0; }
-  .grp h3{ margin:0; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(13px,2.3vh,25px); font-weight:800;
-    letter-spacing:.5px; color:#fff; padding:1vh 1.2vw; display:flex; justify-content:space-between; align-items:center; }
+  .grp h3{ margin:0; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(13px,2.3cqh,25px); font-weight:800;
+    letter-spacing:.5px; color:#fff; padding:1cqh 1.2vw; display:flex; justify-content:space-between; align-items:center; }
   .grp h3 .badge{ font-size:1.1em; }
-  table{ width:100%; border-collapse:collapse; font-size:clamp(11px,2vh,22px); flex:1; }
-  thead th{ font-size:clamp(8px,1.4vh,14px); text-transform:uppercase; letter-spacing:.4px; color:var(--grey);
-    font-weight:800; padding:.8vh .3vw .4vh; text-align:center; }
+  table{ width:100%; border-collapse:collapse; font-size:clamp(11px,2cqh,22px); flex:1; }
+  thead th{ font-size:clamp(8px,1.4cqh,14px); text-transform:uppercase; letter-spacing:.4px; color:var(--grey);
+    font-weight:800; padding:.8cqh .3vw .4cqh; text-align:center; }
   thead th.team{ text-align:left; padding-left:1vw; }
-  tbody td{ padding:.9vh .3vw; text-align:center; border-top:1px solid var(--cloud); }
+  tbody td{ padding:.9cqh .3vw; text-align:center; border-top:1px solid var(--cloud); }
   td.team{ text-align:left; padding-left:1vw; }
-  .flag{ font-size:clamp(15px,3vh,32px); margin-right:.6vw; vertical-align:-.15em; }
-  .tname{ font-weight:800; font-size:clamp(12px,2.2vh,24px); }
-  .owner{ display:table; font-size:clamp(11px,1.9vh,19px); color:var(--ink-2); font-weight:800; margin-top:.4vh;
+  .flag{ font-size:clamp(15px,3cqh,32px); margin-right:.6vw; vertical-align:-.15em; }
+  .tname{ font-weight:800; font-size:clamp(12px,2.2cqh,24px); }
+  .owner{ display:table; font-size:clamp(11px,1.9cqh,19px); color:var(--ink-2); font-weight:800; margin-top:.4cqh;
     text-transform:uppercase; letter-spacing:.3px;
-    background:var(--cloud); border:1px solid var(--line); padding:.25vh .9vh; border-radius:30px; }
-  td.pts{ font-weight:800; font-size:clamp(13px,2.6vh,28px); }
+    background:var(--cloud); border:1px solid var(--line); padding:.25cqh .9cqh; border-radius:30px; }
+  td.pts{ font-weight:800; font-size:clamp(13px,2.6cqh,28px); }
   .pos{ width:2em; font-weight:800; }
   tr.q1 .pos,tr.q2 .pos{ color:var(--good); }
   tr.q1 td{ background:linear-gradient(90deg,rgba(16,185,129,.14),transparent); }
@@ -119,16 +119,16 @@
   tr.q3 .pos::after{ content:'\2022'; color:var(--sun); }
 
   /* ===== Overall ranking: all 48 teams in one league table ===== */
-  .rank-sub{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(10px,1.7vh,16px); margin:-.8vh 0 1.6vh; }
+  .rank-sub{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(10px,1.7cqh,16px); margin:-.8cqh 0 1.6cqh; }
   .rank-cols{ flex:1; min-height:0; display:flex; gap:1.2vw; }
   .rank-col{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0;
     background:var(--paper); border:1px solid var(--line); border-radius:14px; overflow:hidden;
     box-shadow:0 8px 22px rgba(11,27,51,.06); }
-  .rank-tbl{ font-size:clamp(10px,1.6vh,18px); }
-  .rank-tbl tbody td{ padding:.45vh .35vw; }
-  .rank-tbl .flag{ font-size:clamp(12px,2.1vh,22px); margin-right:.5vw; }
-  .rank-tbl .tname{ font-size:clamp(9px,1.45vh,15px); font-weight:700; color:var(--ink-2); }
-  .rank-tbl .owner{ font-size:clamp(11px,1.85vh,18px); font-weight:800; padding:.25vh 1vh; margin-top:.35vh;
+  .rank-tbl{ font-size:clamp(10px,1.6cqh,18px); }
+  .rank-tbl tbody td{ padding:.45cqh .35vw; }
+  .rank-tbl .flag{ font-size:clamp(12px,2.1cqh,22px); margin-right:.5vw; }
+  .rank-tbl .tname{ font-size:clamp(9px,1.45cqh,15px); font-weight:700; color:var(--ink-2); }
+  .rank-tbl .owner{ font-size:clamp(11px,1.85cqh,18px); font-weight:800; padding:.25cqh 1cqh; margin-top:.35cqh;
     background:rgba(18,201,192,.16); border-color:rgba(18,201,192,.5); color:#0a6b66; }
   .rank-tbl tr.qin td{ background:linear-gradient(90deg,rgba(16,185,129,.13),transparent); }
   .rank-tbl tr.notplayed td{ opacity:.5; }
@@ -145,7 +145,7 @@
   .form-chip.d{ background:var(--grey); }
   .form-chip.l{ background:var(--bad); }
   .qual-badge{ display:inline-block; font-size:.76em; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
-    padding:.25vh .8vh; border-radius:20px; white-space:nowrap; }
+    padding:.25cqh .8cqh; border-radius:20px; white-space:nowrap; }
   .qual-badge.auto{ background:var(--good); color:#fff; }
   .qual-badge.third{ background:rgba(16,185,129,.16); color:#0a7a55; border:1px solid rgba(16,185,129,.55); }
   .qual-badge.out{ background:var(--cloud); color:var(--grey); }
@@ -178,6 +178,7 @@
   .tk-own{ font-size:.78em; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
     padding:.15em .6em; border-radius:20px; background:rgba(255,255,255,.16); color:#fff; }
   .tk-pts{ font-weight:800; font-size:1.15em; color:var(--lime); }
+  .tk-gd{ font-weight:800; font-size:.82em; opacity:.75; }
 
   /* ===== Day screens (yesterday / today / tomorrow) ===== */
   .scr-title .dte{ font-size:.55em; color:var(--grey); font-weight:700; }
@@ -398,31 +399,34 @@
     return Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; })
       .sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
   }
-  function ownerStandings(){
-    var agg={};
+  function ownerStandings(){  // rank each owner by their single best-performing team (pts → GD → GF)
+    var best={};
     Object.keys(OWNERS).forEach(function(team){
       var s=STATS[team]; if(!s) return;
-      var a=agg[OWNERS[team]] || (agg[OWNERS[team]]={owner:OWNERS[team], pts:0, gf:0, ga:0});
-      a.pts+=s.pts; a.gf+=s.gf; a.ga+=s.ga;
+      var o=OWNERS[team], c={owner:o, team:team, flag:TEAM_FLAG[team], pts:s.pts, gd:gd(s), gf:s.gf};
+      var cur=best[o];
+      if(!cur || c.pts>cur.pts || (c.pts===cur.pts && c.gd>cur.gd) || (c.pts===cur.pts && c.gd===cur.gd && c.gf>cur.gf)) best[o]=c;
     });
-    return Object.keys(agg).map(function(o){ return agg[o]; })
-      .sort(function(a,b){ return b.pts-a.pts || (b.gf-b.ga)-(a.gf-a.ga) || b.gf-a.gf || a.owner.localeCompare(b.owner); });
+    return Object.keys(best).map(function(o){ return best[o]; })
+      .sort(function(a,b){ return b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || a.owner.localeCompare(b.owner); });
   }
-  function tickTeamHTML(t,pos){  // pos = zero-based overall rank
+  function tickTeamHTML(t,pos,withGd){  // pos = zero-based overall rank
     var own=OWNERS[t.name] ? '<span class="tk-own">'+OWNERS[t.name]+'</span>' : '';
+    var d=gd(t.s), gdHTML=withGd ? '<span class="tk-gd">'+(d>0?'+':'')+d+'</span>' : '';
     return '<span class="tk-item"><span class="tk-rank">'+(pos+1)+'</span>'+flagHTML(t.flag)+
-      '<span class="tk-name">'+t.name+'</span>'+own+'<span class="tk-pts">'+t.s.pts+'</span></span>';
+      '<span class="tk-name">'+t.name+'</span>'+own+'<span class="tk-pts">'+t.s.pts+'</span>'+gdHTML+'</span>';
   }
-  function tickOwnerHTML(o,i){
-    var d=o.gf-o.ga;
+  function tickOwnerHTML(o,i){  // o = owner's best team {owner, team, flag, pts, gd}
     return '<span class="tk-item"><span class="tk-rank">'+(i+1)+'</span>'+
-      '<span class="tk-name">'+o.owner+'</span><span class="tk-pts">'+o.pts+'</span>'+
-      '<span class="tk-own">GD '+(d>0?'+':'')+d+'</span></span>';
+      '<span class="tk-name">'+o.owner+'</span>'+
+      '<span class="tk-own">'+flagHTML(o.flag)+' '+o.team+'</span>'+
+      '<span class="tk-pts">'+o.pts+'</span>'+
+      '<span class="tk-gd">'+(o.gd>0?'+':'')+o.gd+'</span></span>';
   }
   // Bottom-10 shows true overall positions (e.g. 39–48), least-bad to worst, so the rank numbers stay honest.
   var TK_FRAMES=[
     {label:'🔥 Top 10', cls:'top', build:function(){ var a=sortedTeams(); return a.slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }); }},
-    {label:'🥄 Bottom 10', cls:'bot', build:function(){ var a=sortedTeams(); return a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i); }); }},
+    {label:'🥄 Bottom 10', cls:'bot', build:function(){ var a=sortedTeams(); return a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i,true); }); }},
     {label:'🏆 Owner standings', cls:'own', build:function(){ return ownerStandings().map(tickOwnerHTML); }}
   ];
   var tkFrame=0;
@@ -448,7 +452,7 @@
     var seg='<span class="tk-divider top">🔥 Top 10</span>'+
       a.slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }).join('')+
       '<span class="tk-divider bot">🥄 Bottom 10</span>'+
-      a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i); }).join('')+
+      a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i,true); }).join('')+
       '<span class="tk-divider own">🏆 Owner standings</span>'+
       ownerStandings().map(tickOwnerHTML).join('');
     if(seg===lastMarquee) return;          // unchanged → leave the scroll running, don't restart it
@@ -464,6 +468,24 @@
     arr.sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
     return arr;
   }
+
+  // Scale a dense table down to fit its container exactly so rows never clip; width is kept via inverse-scale.
+  function fitTables(sel){
+    document.querySelectorAll(sel).forEach(function(box){
+      var tbl=box.querySelector('table'); if(!tbl) return;
+      tbl.style.transformOrigin='top left'; tbl.style.transform=''; tbl.style.width='';
+      tbl.style.flex='none'; tbl.style.height='auto';                 // release flex:1 to measure natural height
+      var avail=box.clientHeight;
+      Array.prototype.forEach.call(box.children, function(ch){ if(ch!==tbl) avail-=ch.offsetHeight; }); // minus group <h3>
+      var nat=tbl.offsetHeight;
+      if(nat>0 && avail>0 && nat>avail+1){
+        var s=(avail-1)/nat;
+        tbl.style.width=(100/s).toFixed(3)+'%';
+        tbl.style.transform='scale('+s.toFixed(4)+')';
+      }else{ tbl.style.flex=''; tbl.style.height=''; }                // already fits → let it fill normally
+    });
+  }
+  function fitDense(){ fitTables('#rankHost .rank-col'); fitTables('.groups-4 .grp'); }
 
   function renderGroups(){
     var hosts=[0,1,2].map(function(i){ return document.getElementById('groupsHost'+i); });
@@ -488,6 +510,7 @@
       hosts[Math.floor(gi/4)].appendChild(d);
     });
     paintSpoon();
+    fitTables('.groups-4 .grp');
   }
 
   // ===== Overall ranking: all 48 teams merged into one league table =====
@@ -543,10 +566,11 @@
     for(var c=0;c<3;c++){
       var rows=teams.slice(c*16,c*16+16).map(function(t,i){ return rowHTML(t,c*16+i+1); }).join('');
       html+='<div class="rank-col"><table class="rank-tbl">'+
-        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>GD</th><th>Pts</th><th>Through?</th></tr></thead>'+
+        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>GD</th><th>Pts</th><th>Projected</th></tr></thead>'+
         '<tbody>'+rows+'</tbody></table></div>';
     }
     host.innerHTML=html;
+    fitTables('#rankHost .rank-col');
   }
 
   function ownerTag(t){ return (OWNERS[t]?OWNERS[t]+' ':'')+'('+t+')'; }
@@ -888,6 +912,8 @@
   renderAll(); showScreen(0); resetTimer();
   if(reduceMotion){ paintTicker(); setInterval(advanceTicker, 12000); } // crossfade fallback when motion is reduced
   else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='📊 Standings'; tkLbl.className='tk-label'; buildMarquee(); }
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDense); // re-fit once webfonts change row heights
+  window.addEventListener('resize', fitDense);
   pull(); setInterval(pull, 5*60000);      // daily-feed refresh every 5 min
   setInterval(pullLive, 60000);            // in-play scores every minute
 })();
