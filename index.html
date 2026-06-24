@@ -196,25 +196,42 @@
     padding:.3vh 1vh; font-size:clamp(10px,1.7vh,17px); letter-spacing:1px; animation:p 1.4s ease-in-out infinite; }
 
   /* ===== Knockout bracket ===== */
-  .bracket{ flex:1; min-height:0; display:flex; gap:1.6vw; align-items:stretch; }
-  .col{ display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:.6vh; min-width:0; }
-  .col h4{ margin:0 0 .4vh; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(9px,1.6vh,16px); letter-spacing:1.5px;
-    text-transform:uppercase; font-weight:800; text-align:center; color:#fff; padding:.6vh; border-radius:8px; }
-  .col:nth-child(1) h4{ background:var(--magenta); }
-  .col:nth-child(2) h4{ background:var(--tang); }
-  .col:nth-child(3) h4{ background:var(--blue); }
-  .col:nth-child(4) h4{ background:var(--violet); }
-  .tie{ background:var(--paper); border-radius:10px; padding:.4vh .8vw; font-size:clamp(9px,1.6vh,16px);
+  /* Two-sided bracket: left wing | centre (champion) | right wing, mirrored. */
+  .bracket{ flex:1; min-height:0; display:flex; gap:.5vw; align-items:stretch; }
+  .wing{ display:flex; flex:1; gap:.4vw; min-width:0; }
+  .center{ flex:0 0 11%; display:flex; flex-direction:column; justify-content:center; gap:1.4vh; min-width:0; }
+  .col{ display:flex; flex-direction:column; flex:1; min-width:0; }
+  .col.r32{ flex:2.4; } .col.r16{ flex:1.4; }
+  /* Ties live in a body that evenly splits the column height, so each round's boxes sit
+     centred between their two feeders in the previous round — proper bracket alignment.
+     The header is kept out of the distribution so columns with different tie counts align. */
+  .col-body{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:space-around; }
+  .col h4{ margin:0 0 .4vh; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(8px,1.4vh,15px); letter-spacing:1px;
+    text-transform:uppercase; font-weight:800; text-align:center; color:#fff; padding:.6vh .2vw; border-radius:8px; white-space:nowrap; }
+  .col.r32 h4{ background:var(--magenta); }
+  .col.r16 h4{ background:var(--tang); }
+  .col.qf h4{ background:var(--blue); }
+  .col.sf h4{ background:var(--violet); }
+  .tie{ background:var(--paper); border-radius:10px; padding:.4vh .6vw; font-size:clamp(9px,1.5vh,16px);
     min-height:4vh; display:flex; flex-direction:column; justify-content:center; gap:.3vh;
-    border-left:4px solid var(--line); box-shadow:0 4px 12px rgba(11,27,51,.05); }
+    border-left:4px solid var(--accent,var(--line)); box-shadow:0 4px 12px rgba(11,27,51,.05); }
+  .wing.right .tie{ border-left:none; border-right:4px solid var(--accent,var(--line)); }
   .tie .slot{ display:flex; align-items:center; gap:.4vw; color:var(--ink); font-weight:700; min-width:0; }
-  .tie .slot b{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .wing.right .tie .slot{ flex-direction:row-reverse; }   /* mirror: flag/name to the outer edge */
+  .tie .slot b{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .tie .slot.empty{ color:var(--grey); font-weight:600; }
   .tie .slot.win{ color:var(--good); }
   .tie .t-owner{ font-style:normal; font-size:.85em; color:var(--ink-2); font-weight:700; text-transform:uppercase; letter-spacing:.3px; flex:none;
     background:var(--cloud); border:1px solid var(--line); padding:.1vh .7vh; border-radius:20px; }
   .tie .g{ margin-left:auto; font-weight:800; flex:none; }
-  .final-col{ justify-content:center; gap:1.4vh; }
+  .wing.right .tie .g{ margin-left:0; margin-right:auto; }
+  .tie .fc-badge{ margin-left:auto; flex:none; font-size:.62em; font-weight:800; letter-spacing:.5px;
+    padding:.2vh .6vh; border-radius:20px; text-transform:uppercase; }
+  .wing.right .tie .fc-badge{ margin-left:0; margin-right:auto; }
+  .tie .fc-badge.locked{ background:var(--good); color:#fff; }
+  .tie .fc-badge.tbc{ background:var(--cloud); color:var(--grey); border:1px solid var(--line); }
+  .bracket-note{ font-size:clamp(10px,1.6vh,15px); color:var(--grey); font-weight:600; margin:-.2vh 0 1vh; }
+  .bracket-note .lk{ color:var(--good); } .bracket-note .tb{ color:var(--grey); }
   .final{ border-radius:16px; padding:2vh 1vw; text-align:center;
     background:linear-gradient(135deg,var(--sun),var(--tang)); color:#3a2400;
     box-shadow:0 12px 30px rgba(255,122,51,.35); }
@@ -292,6 +309,7 @@
 
   <section class="screen" id="scr-bracket">
     <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#9876;&#65039;</span>Knockout bracket</h2>
+    <div class="bracket-note" id="bracketNote"></div>
     <div class="bracket" id="bracket"></div>
   </section>
 
@@ -707,43 +725,109 @@
         (b.owner?'<i class="t-owner">'+b.owner+'</i>':'')+
         (goals!=null?'<span class="g">'+goals+'</span>':'')+'</div>';
     }
-    return '<div class="tie" style="border-left-color:'+PAL[i%PAL.length]+'">'+
+    return '<div class="tie" style="--accent:'+PAL[i%PAL.length]+'">'+
       slot(t1,res?m.score.ft[0]:null,w===0)+slot(t2,res?m.score.ft[1]:null,w===1)+'</div>';
   }
   function emptyTies(n){
     var s=''; for(var i=0;i<n;i++) s+='<div class="tie"><div class="slot empty">&mdash;</div><div class="slot empty">&mdash;</div></div>';
     return s;
   }
+  // ===== Forecast bracket (pre-knockout) =====
+  // FIFA's R32 draw is a fixed slot map (matches 73–88): 12 winners + 12 runners-up + 8 best
+  // thirds → 16 ties. The concrete teams only resolve once the groups finish, so until then we
+  // project each slot from current standings. Order matches the live feed so the forecast lines
+  // up with the real bracket that later replaces it. 'T' marks a best-third slot.
+  var FC_SLOTS=[
+    ['2A','2B'],['1E','T'],['1F','2C'],['1C','2F'],
+    ['1I','T'],['2E','2I'],['1A','T'],['1L','T'],
+    ['1D','T'],['1G','T'],['2K','2L'],['1H','2J'],
+    ['1B','T'],['1J','2H'],['1K','T'],['2D','2G']
+  ];
+  // A team's finishing position is "locked" only when every rival in the group is already
+  // strictly ordered against it on points — no GD/head-to-head tiebreak needed. Returns the
+  // settled position (1–4), or null while it can still move.
+  function lockedPos(name,g){
+    var s=STATS[name], floor=s.pts, ceil=s.pts+3*(3-s.pld), above=0, below=0;
+    GROUPS[g].forEach(function(t){
+      if(t[0]===name) return;
+      var o=STATS[t[0]];
+      if(o.pts>ceil) above++;                       // rival's worst case still beats my best
+      else if(o.pts+3*(3-o.pld)<floor) below++;     // rival's best case can't reach my worst
+    });
+    return (above+below===3) ? above+1 : null;       // all 3 rivals separated → position fixed
+  }
+  function bestThirds(){
+    var t=[]; Object.keys(GROUPS).forEach(function(g){ var r=rankGroup(g); if(r[2]) t.push(r[2]); });
+    t.sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
+    return t.slice(0,8);
+  }
+  // Render one forecast slot. '1G'/'2C' resolve to a group's current 1st/2nd; 'T' pulls the next
+  // best third (matchup is provisional → always TBC). Locked group slots get the LOCKED badge.
+  function fcSlotHTML(tok,pool){
+    if(tok==='T'){ var t=pool.shift();
+      if(!t) return '<div class="slot empty"><b>3rd</b></div>';
+      return '<div class="slot"><span>'+flagHTML(t.flag)+'</span><b>'+t.name+'</b>'+
+        (OWNERS[t.name]?'<i class="t-owner">'+OWNERS[t.name]+'</i>':'')+'<span class="fc-badge tbc">TBC</span></div>';
+    }
+    var pos=+tok[0], g=tok.slice(1), pick=rankGroup(g)[pos-1];
+    if(!pick) return '<div class="slot empty"><b>'+tok+'</b></div>';
+    var locked=lockedPos(pick.name,g)===pos;
+    return '<div class="slot"><span>'+flagHTML(pick.flag)+'</span><b>'+pick.name+'</b>'+
+      (OWNERS[pick.name]?'<i class="t-owner">'+OWNERS[pick.name]+'</i>':'')+
+      '<span class="fc-badge '+(locked?'locked':'tbc')+'">'+(locked?'LOCKED':'TBC')+'</span></div>';
+  }
+  // Bracket tree (official 2026 match map 73–104) → which feed-array index sits where, per side,
+  // top-to-bottom. Left half feeds SF 101, right half feeds SF 102; they meet only in the final.
+  // Indices are offsets within each round's slice (R32: match-73, R16: match-89, QF: 97, SF: 101).
+  var BR={
+    r32:{ l:[1,4,0,2,10,11,8,9], r:[3,5,6,7,13,15,12,14] },
+    r16:{ l:[0,1,4,5],           r:[2,3,6,7] },
+    qf: { l:[0,1],               r:[2,3] },
+    sf: { l:[0],                 r:[1] }
+  };
+  var EMPTY_TIE='<div class="tie"><div class="slot empty">&mdash;</div><div class="slot empty">&mdash;</div></div>';
+  // One column: pull the side's ties (in tree order) from a round's tie array, padding gaps.
+  function wingCol(cls,title,ties,idx){
+    return '<div class="col '+cls+'"><h4>'+title+'</h4><div class="col-body">'+
+      idx.map(function(i){ return ties[i]||EMPTY_TIE; }).join('')+'</div></div>';
+  }
   function renderBracket(){
-    var host=document.getElementById('bracket');
+    var host=document.getElementById('bracket'), note=document.getElementById('bracketNote');
     var kos=koMatches();
-    var champ='—';
-    if(kos.length){
+    // Live bracket only once the knockouts are truly under way (real fixtures + real teams) —
+    // never on the feed's "Winner Group A" placeholders that can show up before the groups end.
+    var live=isKnockoutPhase() && kos.length;
+    var r32, r16=[], qf=[], sf=[], champ='&mdash;';
+    if(live){
+      if(note) note.style.display='none';
       // 32 knockout matches in feed order: R32 ×16, R16 ×8, QF ×4, SF ×2, 3rd place, final
-      var r32=kos.slice(0,16), r16=kos.slice(16,24), qf=kos.slice(24,28), sf=kos.slice(28,30);
+      r32=kos.slice(0,16).map(tieHTML); r16=kos.slice(16,24).map(tieHTML);
+      qf=kos.slice(24,28).map(tieHTML); sf=kos.slice(28,30).map(tieHTML);
       var fin=kos.length>=32?kos[31]:null;
       if(fin){ var w=winnerOf(fin); if(w!=null){ var b=teamBits(w===0?fin.team1:fin.team2);
-        champ=(b.flag?flagHTML(b.flag)+' ':'')+b.name+(b.owner?' — '+b.owner:''); } }
-      host.innerHTML=
-        '<div class="col"><h4>Round of 32</h4>'+r32.map(tieHTML).join('')+emptyTies(16-r32.length)+'</div>'+
-        '<div class="col"><h4>Round of 16</h4>'+r16.map(tieHTML).join('')+emptyTies(8-r16.length)+'</div>'+
-        '<div class="col"><h4>Quarters</h4>'+qf.map(tieHTML).join('')+emptyTies(4-qf.length)+'</div>'+
-        '<div class="col final-col"><h4>Semis / Final</h4>'+sf.map(tieHTML).join('')+emptyTies(2-sf.length)+
-          '<div class="final"><div class="ttl">CHAMPIONS</div><div class="cup">&#127942;</div><div class="champ">'+champ+'</div></div>'+
-          '<div class="third-box">&#129353; 3RD-PLACE PLAY-OFF</div></div>';
-      return;
+        champ=(b.flag?flagHTML(b.flag)+' ':'')+b.name+(b.owner?' &mdash; '+b.owner:''); } }
+    } else {
+      // Pre-knockout: forecast every R32 slot from current standings, badged LOCKED / TBC.
+      if(note){ note.style.display='';
+        note.innerHTML='Forecast from current standings — <b class="lk">LOCKED</b> = mathematically certain in that spot, <b class="tb">TBC</b> = could still change. The real draw is set when the groups finish.'; }
+      var pool=bestThirds();
+      r32=FC_SLOTS.map(function(p,i){
+        return '<div class="tie" style="--accent:'+PAL[i%PAL.length]+'">'+fcSlotHTML(p[0],pool)+fcSlotHTML(p[1],pool)+'</div>';
+      });
     }
-    // Pre-knockout fallback: seeded slot labels from group positions
-    var slots=[['1A','3rd'],['1C','3rd'],['1E','3rd'],['1G','3rd'],['2B','2A'],['2D','2C'],['2F','2E'],['2H','2G'],
-               ['1B','3rd'],['1D','3rd'],['1F','3rd'],['1H','3rd'],['2J','2I'],['2L','2K'],['1I','3rd'],['1K','3rd']];
-    function lbl(a,b,c){ return '<div class="tie" style="border-left-color:'+c+'"><div class="slot"><b>'+a+'</b></div><div class="slot"><b>'+b+'</b></div></div>'; }
+    // A wing = R32 → R16 → QF → SF inward; the right wing renders that order reversed so it grows
+    // toward the centre (and CSS mirrors each tie).
+    function wing(s){
+      var cols=[ wingCol('r32','Round of 32',r32,BR.r32[s]), wingCol('r16','Round of 16',r16,BR.r16[s]),
+                 wingCol('qf','Quarters',qf,BR.qf[s]), wingCol('sf','Semis',sf,BR.sf[s]) ];
+      return (s==='r'?cols.reverse():cols).join('');
+    }
     host.innerHTML=
-      '<div class="col"><h4>Round of 32</h4>'+slots.map(function(p,i){ return lbl(p[0],p[1],PAL[i%PAL.length]); }).join('')+'</div>'+
-      '<div class="col"><h4>Round of 16</h4>'+emptyTies(8)+'</div>'+
-      '<div class="col"><h4>Quarters</h4>'+emptyTies(4)+'</div>'+
-      '<div class="col final-col"><h4>Semis / Final</h4>'+
+      '<div class="wing left">'+wing('l')+'</div>'+
+      '<div class="center">'+
         '<div class="final"><div class="ttl">CHAMPIONS</div><div class="cup">&#127942;</div><div class="champ">'+champ+'</div></div>'+
-        '<div class="third-box">&#129353; 3RD-PLACE PLAY-OFF</div></div>';
+        '<div class="third-box">&#129353; 3RD-PLACE PLAY-OFF</div></div>'+
+      '<div class="wing right">'+wing('r')+'</div>';
   }
   function updatePrizes(){
     var kos=koMatches();
@@ -764,7 +848,7 @@
     {id:'scr-grp-1', group:true},
     {id:'scr-grp-2', group:true},
     {id:'scr-ranking', group:true, render:renderRanking, hold:30000},
-    {id:'scr-bracket', ko:true, render:renderBracket},
+    {id:'scr-bracket', render:renderBracket, hold:35000},
     {id:'scr-prizes', ko:true}
   ];
   function activeScreens(){
