@@ -64,41 +64,10 @@
   .scr-title .n{ font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(14px,2.2vh,22px); font-weight:800; color:#fff;
     width:1.8em; height:1.8em; border-radius:.55em; display:grid; place-items:center; }
 
-  /* ===== Match cards (latest / upcoming) ===== */
-  .cards{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:2.5vh;
-    width:min(94%,1500px); margin:0 auto; }
-  .match-card{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:2vw;
-    background:var(--paper); border:1px solid var(--line); border-left:8px solid var(--blue);
-    border-radius:20px; padding:2.4vh 3vw; box-shadow:0 8px 22px rgba(11,27,51,.06); }
-  .mc-team{ display:flex; align-items:center; gap:1.4vw; min-width:0; }
-  .mc-team.right{ flex-direction:row-reverse; text-align:right; }
-  .mc-flag{ font-size:clamp(28px,6.5vh,72px); line-height:1; flex:none; }
-  .mc-flag.dim{ opacity:.3; }
   /* Flags render as Twemoji SVGs — Windows browsers have no flag emoji glyphs */
   .flagimg{ width:1em; height:1em; vertical-align:-.12em; }
-  .mc-tn{ min-width:0; }
-  .mc-name{ display:block; font-size:clamp(17px,3.3vh,40px); font-weight:800; line-height:1.1; }
-  .mc-owner{ display:inline-block; margin-top:.7vh; font-size:clamp(14px,2.6vh,28px); font-weight:800;
-    text-transform:uppercase; letter-spacing:.6px; color:var(--ink-2);
-    background:var(--cloud); border:1px solid var(--line); padding:.4vh 1.1vh; border-radius:30px; }
-  .mc-owner.none{ opacity:.45; }
-  .mc-mid{ text-align:center; min-width:14vw; }
-  .mc-tag{ display:block; font-size:clamp(9px,1.6vh,16px); font-weight:800; text-transform:uppercase;
-    letter-spacing:1.2px; color:var(--grey); margin-bottom:.5vh; }
-  .mc-score{ font-size:clamp(26px,6vh,64px); font-weight:800; line-height:1; }
-  .mc-extra{ display:block; font-size:clamp(10px,1.8vh,18px); font-weight:700; color:var(--grey); margin-top:.5vh; }
-  .mc-when{ font-size:clamp(16px,3vh,34px); font-weight:800; line-height:1.1; }
-  .mc-time{ font-size:clamp(13px,2.4vh,26px); font-weight:700; color:var(--grey); margin-top:.4vh; }
-  .empty-card{ background:var(--paper); border:2px dashed var(--line); border-radius:20px;
-    padding:7vh 4vw; text-align:center; color:var(--grey); font-weight:700; font-size:clamp(14px,2.6vh,28px); }
 
-  /* ===== Group tables (4 per screen) ===== */
-  .groups-4{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2cqh 1.5vw; }
-  .grp{ background:var(--paper); border-radius:16px; overflow:hidden; border:1px solid var(--line);
-    box-shadow:0 8px 22px rgba(11,27,51,.06); display:flex; flex-direction:column; min-height:0; }
-  .grp h3{ margin:0; font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(13px,2.3cqh,25px); font-weight:800;
-    letter-spacing:.5px; color:#fff; padding:1cqh 1.2vw; display:flex; justify-content:space-between; align-items:center; }
-  .grp h3 .badge{ font-size:1.1em; }
+  /* ===== Shared league-table styles (overall standings) ===== */
   table{ width:100%; border-collapse:collapse; font-size:clamp(11px,2cqh,22px); flex:1; }
   thead th{ font-size:clamp(8px,1.4cqh,14px); text-transform:uppercase; letter-spacing:.4px; color:var(--grey);
     font-weight:800; padding:.8cqh .3vw .4cqh; text-align:center; }
@@ -110,27 +79,25 @@
   .owner{ display:table; font-size:clamp(11px,1.9cqh,19px); color:var(--ink-2); font-weight:800; margin-top:.4cqh;
     text-transform:uppercase; letter-spacing:.3px;
     background:var(--cloud); border:1px solid var(--line); padding:.25cqh .9cqh; border-radius:30px; }
-  td.pts{ font-weight:800; font-size:clamp(13px,2.6cqh,28px); }
-  .pos{ width:2em; font-weight:800; }
-  tr.q1 .pos,tr.q2 .pos{ color:var(--good); }
-  tr.q1 td{ background:linear-gradient(90deg,rgba(16,185,129,.14),transparent); }
-  tr.q2 td{ background:linear-gradient(90deg,rgba(16,185,129,.07),transparent); }
-  tr.q1 .pos::after,tr.q2 .pos::after{ content:'\2191'; font-size:.7em; }
-  tr.q3 .pos::after{ content:'\2022'; color:var(--sun); }
 
   /* ===== Overall ranking: all 48 teams in one league table ===== */
-  .rank-sub{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(10px,1.7cqh,16px); margin:-.8cqh 0 1.6cqh; }
+  .rank-sub{ text-align:center; color:var(--grey); font-weight:700; font-size:clamp(11px,2cqh,20px); margin:-.6cqh 0 1.4cqh; }
   .rank-cols{ flex:1; min-height:0; display:flex; gap:1.2vw; }
   .rank-col{ flex:1; min-width:0; display:flex; flex-direction:column; min-height:0;
     background:var(--paper); border:1px solid var(--line); border-radius:14px; overflow:hidden;
     box-shadow:0 8px 22px rgba(11,27,51,.06); }
-  .rank-tbl{ font-size:clamp(10px,1.6cqh,18px); }
-  .rank-tbl tbody td{ padding:.45cqh .35vw; }
-  .rank-tbl .flag{ font-size:clamp(12px,2.1cqh,22px); margin-right:.5vw; }
-  .rank-tbl .tname{ font-size:clamp(9px,1.45cqh,15px); font-weight:700; color:var(--ink-2); }
-  .rank-tbl .owner{ font-size:clamp(11px,1.85cqh,18px); font-weight:800; padding:.25cqh 1cqh; margin-top:.35cqh;
+  .rank-tbl{ font-size:clamp(13px,2.3cqh,28px); }
+  .rank-tbl thead th{ font-size:clamp(10px,1.6cqh,18px); padding-bottom:.7cqh; }
+  .rank-tbl tbody td{ padding:.6cqh .4vw; }
+  .rank-tbl .flag{ font-size:clamp(16px,2.9cqh,32px); margin-right:.5vw; }
+  .rank-tbl .tname{ font-size:clamp(12px,2.2cqh,26px); font-weight:800; color:var(--ink); }
+  .rank-tbl .owner{ font-size:clamp(11px,1.8cqh,20px); font-weight:800; padding:.25cqh 1cqh; margin-top:.35cqh;
     background:rgba(18,201,192,.16); border-color:rgba(18,201,192,.5); color:#0a6b66; }
-  .rank-tbl tr.qin td{ background:linear-gradient(90deg,rgba(16,185,129,.13),transparent); }
+  .rank-tbl tr.alive td{ background:linear-gradient(90deg,rgba(16,185,129,.26),rgba(16,185,129,.07)); }
+  .rank-tbl tr.alive td:first-child{ box-shadow:inset 6px 0 0 var(--good); }
+  .rank-tbl tr.elim td{ background:linear-gradient(90deg,rgba(255,59,92,.24),rgba(255,59,92,.06)); }
+  .rank-tbl tr.elim td:first-child{ box-shadow:inset 6px 0 0 var(--bad); }
+  .rank-tbl tr.elim .tname{ color:var(--grey); }
   .rank-tbl tr.notplayed td{ opacity:.5; }
   .rank-pos{ display:inline-flex; align-items:center; justify-content:center; min-width:1.9em; height:1.9em;
     border-radius:8px; font-weight:800; background:var(--cloud); color:var(--ink); }
@@ -149,6 +116,8 @@
   .qual-badge.auto{ background:var(--good); color:#fff; }
   .qual-badge.third{ background:rgba(16,185,129,.16); color:#0a7a55; border:1px solid rgba(16,185,129,.55); }
   .qual-badge.out{ background:var(--cloud); color:var(--grey); }
+  .qual-badge.alive{ background:var(--good); color:#fff; }
+  .qual-badge.elim{ background:var(--bad); color:#fff; }
 
   /* ===== Persistent footer ticker: top/bottom teams + owner standings ===== */
   #kioskTicker{ flex:none; height:clamp(64px,10vh,108px); display:flex; align-items:center; gap:1.4vw;
@@ -180,17 +149,34 @@
   .tk-pts{ font-weight:800; font-size:1.15em; color:var(--lime); }
   .tk-gd{ font-weight:800; font-size:.82em; opacity:.75; }
 
-  /* ===== Day screens (yesterday / today / tomorrow) ===== */
-  .scr-title .dte{ font-size:.55em; color:var(--grey); font-weight:700; }
-  /* dense variant: a full matchday (up to 6 games) still fits one screen */
-  .cards.dense{ gap:1.2vh; }
-  .cards.dense .match-card{ padding:1.1vh 3vw; border-radius:14px; }
-  .cards.dense .mc-flag{ font-size:clamp(22px,4.2vh,46px); }
-  .cards.dense .mc-name{ font-size:clamp(14px,2.5vh,28px); }
-  .cards.dense .mc-owner{ font-size:clamp(12px,2vh,21px); margin-top:.3vh; }
-  .cards.dense .mc-score{ font-size:clamp(20px,3.8vh,42px); }
-  .cards.dense .mc-when{ font-size:clamp(13px,2.2vh,24px); }
-  .cards.dense .mc-time{ font-size:clamp(11px,1.9vh,20px); }
+  /* ===== Day columns: yesterday | today | tomorrow on one screen ===== */
+  .days-3{ flex:1; min-height:0; display:flex; gap:1.2vw; }
+  .day-col{ flex:1; min-width:0; display:flex; flex-direction:column; background:var(--paper);
+    border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 8px 22px rgba(11,27,51,.06); }
+  .day-col.today{ border:2px solid var(--blue); box-shadow:0 12px 30px rgba(45,107,255,.18); }
+  .day-col > header{ flex:none; display:flex; align-items:baseline; gap:.6vw; color:#fff; padding:1.3vh 1.1vw; }
+  .day-col.yday > header{ background:var(--magenta); }
+  .day-col.today > header{ background:var(--blue); }
+  .day-col.tmrw > header{ background:var(--violet); }
+  .day-col header .dl{ font-weight:800; font-size:clamp(14px,2.6vh,30px); letter-spacing:-.3px; }
+  .day-col header .dd{ margin-left:auto; font-weight:700; font-size:clamp(11px,1.8vh,18px); opacity:.9; }
+  .day-games{ flex:1; min-height:0; display:flex; flex-direction:column; padding:1.2vh 1vw; overflow:hidden; }
+  .day-stack{ display:flex; flex-direction:column; gap:1vh; transform-origin:top left; }
+  .day-match{ flex:none; background:var(--cloud); border:1px solid var(--line); border-radius:12px;
+    padding:.8vh 1vw; border-left:5px solid var(--accent,var(--blue)); }
+  .dm-head{ display:flex; align-items:center; gap:.6vw; margin-bottom:.5vh; }
+  .dm-tag{ font-size:clamp(8px,1.4vh,14px); font-weight:800; text-transform:uppercase; letter-spacing:.7px; color:var(--grey); }
+  .dm-when{ margin-left:auto; font-weight:800; font-size:clamp(11px,1.9vh,19px); color:var(--ink-2); }
+  .dm-row{ display:flex; align-items:center; gap:.6vw; padding:.3vh 0; min-width:0; }
+  .dm-row.win .dm-name{ color:var(--good); }
+  .dm-flag{ font-size:clamp(16px,2.9vh,32px); line-height:1; flex:none; }
+  .dm-name{ flex:1; min-width:0; font-weight:800; font-size:clamp(12px,2.1vh,24px);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dm-own{ flex:none; font-size:clamp(10px,1.6vh,16px); font-weight:800; text-transform:uppercase; letter-spacing:.3px;
+    color:var(--ink-2); background:var(--paper); border:1px solid var(--line); padding:.1vh .7vh; border-radius:20px; }
+  .dm-g{ flex:none; margin-left:.4vw; font-weight:800; font-size:clamp(15px,2.7vh,30px); min-width:1.1em; text-align:right; }
+  .day-empty{ margin:auto; text-align:center; color:var(--grey);
+    font-weight:700; font-size:clamp(12px,2.1vh,22px); padding:2vh 1vw; }
 
   .live-badge{ display:inline-block; background:var(--bad); color:#fff; font-weight:800; border-radius:20px;
     padding:.3vh 1vh; font-size:clamp(10px,1.7vh,17px); letter-spacing:1px; animation:p 1.4s ease-in-out infinite; }
@@ -271,39 +257,14 @@
 
 <main id="stage">
 
-  <section class="screen" id="scr-yday">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--magenta)">&#9194;</span>Yesterday <span class="dte" id="ydayDate"></span></h2>
-    <div class="cards" id="ydayGames"></div>
-  </section>
-
-  <section class="screen" id="scr-today">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#9917;</span>Today <span class="dte" id="todayDate"></span></h2>
-    <div class="cards" id="todayGames"></div>
-  </section>
-
-  <section class="screen" id="scr-tmrw">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--violet)">&#9193;</span>Tomorrow <span class="dte" id="tmrwDate"></span></h2>
-    <div class="cards" id="tmrwGames"></div>
-  </section>
-
-  <section class="screen" id="scr-grp-0">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--magenta)">1</span>Groups A &ndash; D</h2>
-    <div class="groups-4" id="groupsHost0"></div>
-  </section>
-
-  <section class="screen" id="scr-grp-1">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--tang)">2</span>Groups E &ndash; H</h2>
-    <div class="groups-4" id="groupsHost1"></div>
-  </section>
-
-  <section class="screen" id="scr-grp-2">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--violet)">3</span>Groups I &ndash; L</h2>
-    <div class="groups-4" id="groupsHost2"></div>
+  <section class="screen" id="scr-days">
+    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#9917;</span>Fixtures &amp; results</h2>
+    <div class="days-3" id="daysHost"></div>
   </section>
 
   <section class="screen" id="scr-ranking">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)">&#127942;</span>Overall ranking</h2>
-    <div class="rank-sub">All 48 teams in one league table &mdash; green means on track to reach the knockouts if the groups ended now.</div>
+    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)">&#127942;</span>Standings &amp; form</h2>
+    <div class="rank-sub">All 48 teams by group-stage form &mdash; <b style="color:var(--good)">green</b> are still in it, <b style="color:var(--bad)">red</b> are eliminated.</div>
     <div class="rank-cols" id="rankHost"></div>
   </section>
 
@@ -503,40 +464,14 @@
       }else{ tbl.style.flex=''; tbl.style.height=''; }                // already fits → let it fill normally
     });
   }
-  function fitDense(){ fitTables('#rankHost .rank-col'); fitTables('.groups-4 .grp'); }
-
-  function renderGroups(){
-    var hosts=[0,1,2].map(function(i){ return document.getElementById('groupsHost'+i); });
-    hosts.forEach(function(h){ h.innerHTML=''; });
-    Object.keys(GROUPS).forEach(function(g,gi){
-      var ranked=rankGroup(g), col=PAL[gi%PAL.length];
-      var rows=ranked.map(function(r,i){
-        var cls=i===0?'q1':(i===1?'q2':(i===2?'q3':''));
-        var own=OWNERS[r.name]?'<span class="owner">'+OWNERS[r.name]+'</span>':'<span class="owner" style="opacity:.45">unassigned</span>';
-        return '<tr class="'+cls+'" data-team="'+r.name+'">'+
-          '<td class="pos">'+(i+1)+'</td>'+
-          '<td class="team"><span class="flag">'+flagHTML(r.flag)+'</span><span class="tname">'+r.name+'</span>'+own+'</td>'+
-          '<td>'+r.s.pld+'</td>'+
-          '<td>'+r.s.gf+'</td>'+
-          '<td>'+r.s.ga+'</td>'+
-          '<td>'+(gd(r.s)>0?'+':'')+gd(r.s)+'</td>'+
-          '<td class="pts" style="color:'+col+'">'+r.s.pts+'</td></tr>';
-      }).join('');
-      var d=document.createElement('div'); d.className='grp';
-      d.innerHTML='<h3 style="background:'+col+'">Group '+g+' <span class="badge">&#9917;</span></h3>'+
-        '<table><thead><tr><th></th><th class="team">Team / owner</th><th>P</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>'+rows+'</tbody></table>';
-      hosts[Math.floor(gi/4)].appendChild(d);
-    });
-    paintSpoon();
-    fitTables('.groups-4 .grp');
-  }
+  function fitDense(){ fitTables('#rankHost .rank-col'); fitStacks(); }
 
   // ===== Overall ranking: all 48 teams merged into one league table =====
   function renderRanking(){
     var host=document.getElementById('rankHost'); if(!host) return;
     function cmp(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); }
 
-    // Projected qualification (2026 rule): top 2 of every group + the 8 best 3rd-placed teams.
+    // Qualification (2026 rule): top 2 of every group + the 8 best 3rd-placed teams.
     var qual={}, thirds=[];
     Object.keys(GROUPS).forEach(function(g){
       var r=rankGroup(g);
@@ -545,6 +480,13 @@
       if(r[2]) thirds.push(r[2]);
     });
     thirds.sort(cmp).forEach(function(t,i){ qual[t.name]= i<8 ? 'third' : 'out'; });
+
+    // Knockout casualties: the losing side of any decided knockout tie is out of the running.
+    var koLost={};
+    koMatches().forEach(function(m){
+      if(!hasResult(m)) return; var w=winnerOf(m); if(w==null) return;
+      var loser=teamBits(w===0?m.team2:m.team1).name; if(loser) koLost[loser]=true;
+    });
 
     // Form guide: each team's results in match order (finished group games only).
     var form={}; Object.keys(STATS).forEach(function(n){ form[n]=[]; });
@@ -562,29 +504,28 @@
     var teams=Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; }).sort(cmp);
 
     function rowHTML(t,rank){
-      var st=qual[t.name]||'out', played=t.s.pld>0, gv=gd(t.s);
+      var played=t.s.pld>0, gv=gd(t.s);
+      var alive=played && qual[t.name] && qual[t.name]!=='out' && !koLost[t.name];
       var own=OWNERS[t.name]?'<span class="owner">'+OWNERS[t.name]+'</span>':'<span class="owner" style="opacity:.45">unassigned</span>';
       var chips=(form[t.name]||[]).map(function(r){ return '<span class="form-chip '+r.toLowerCase()+'">'+r+'</span>'; }).join('');
       var posCls=rank===1?'p1':rank===2?'p2':rank===3?'p3':'';
-      var badge = !played ? '<span class="qual-badge out">&mdash;</span>'
-                : st==='auto' ? '<span class="qual-badge auto">Through</span>'
-                : st==='third' ? '<span class="qual-badge third">Best 3rd</span>'
-                : '<span class="qual-badge out">Out</span>';
-      var cls=[]; if(played && st!=='out') cls.push('qin'); if(!played) cls.push('notplayed');
-      return '<tr'+(cls.length?' class="'+cls.join(' ')+'"':'')+'>'+
+      var cls = !played ? 'notplayed' : (alive ? 'alive' : 'elim');
+      return '<tr class="'+cls+'">'+
         '<td><span class="rank-pos '+posCls+'">'+rank+'</span></td>'+
         '<td class="team"><span class="flag">'+flagHTML(t.flag)+'</span><span class="tname">'+t.name+'</span>'+own+'</td>'+
         '<td><span class="form">'+chips+'</span></td>'+
+        '<td>'+t.s.w+'</td>'+
+        '<td>'+t.s.d+'</td>'+
+        '<td>'+t.s.l+'</td>'+
         '<td>'+(played?(gv>0?'+':'')+gv:'&mdash;')+'</td>'+
-        '<td class="rank-pts">'+t.s.pts+'</td>'+
-        '<td>'+badge+'</td></tr>';
+        '<td class="rank-pts">'+t.s.pts+'</td></tr>';
     }
 
     var html='';
     for(var c=0;c<3;c++){
       var rows=teams.slice(c*16,c*16+16).map(function(t,i){ return rowHTML(t,c*16+i+1); }).join('');
       html+='<div class="rank-col"><table class="rank-tbl">'+
-        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>GD</th><th>Pts</th><th>Projected</th></tr></thead>'+
+        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>'+
         '<tbody>'+rows+'</tbody></table></div>';
     }
     host.innerHTML=html;
@@ -596,12 +537,6 @@
     var all=[];
     Object.keys(STATS).forEach(function(n){ var s=STATS[n]; if(s.pld||s.pts||s.gf||s.ga) all.push({name:n,s:s}); });
     var sp=null; if(all.length){ all.sort(function(a,b){ return a.s.pts-b.s.pts || b.s.ga-a.s.ga; }); sp=all[0]; }
-    root.querySelectorAll('tr[data-team]').forEach(function(tr){
-      if(sp && tr.getAttribute('data-team')===sp.name){
-        tr.querySelectorAll('td').forEach(function(td){ td.style.background='var(--spoon)'; });
-        tr.style.boxShadow='inset 4px 0 0 var(--bad)';
-      } else { tr.style.boxShadow=''; }
-    });
     document.getElementById('prizeSpoon').textContent= sp?(ownerTag(sp.name)+' — '+sp.s.pts+' pts'):'—';
   }
 
@@ -643,55 +578,65 @@
     var g=String(m.group);
     return g.toLowerCase().indexOf('group')===0 ? g : 'Group '+g;
   }
-  function teamCellHTML(b,right){
-    var flag=b.flag?'<span class="mc-flag">'+flagHTML(b.flag)+'</span>':'<span class="mc-flag dim">'+flagHTML('⚽')+'</span>';
-    var owner=b.owner?'<span class="mc-owner">'+b.owner+'</span>':'<span class="mc-owner none">unassigned</span>';
-    return '<div class="mc-team'+(right?' right':'')+'">'+flag+
-      '<div class="mc-tn"><span class="mc-name">'+b.name+'</span>'+owner+'</div></div>';
-  }
-  function matchCardHTML(m,i){
-    var t1=teamBits(m.team1), t2=teamBits(m.team2), mid;
-    if(m.live){
-      mid='<div class="mc-score disp">'+m.live.s[0]+' – '+m.live.s[1]+'</div>'+
-        '<span class="mc-extra"><span class="live-badge">LIVE '+m.live.min+'</span></span>';
-    }else if(hasResult(m)){
-      var s=m.score, extra='';
-      if(s.pen) extra='<span class="mc-extra">pens '+s.pen[0]+'–'+s.pen[1]+'</span>';
-      else if(s.et) extra='<span class="mc-extra">after extra time</span>';
-      mid='<div class="mc-score disp">'+s.ft[0]+' – '+s.ft[1]+'</div>'+extra;
-    }else{
-      var k=kickoff(m);
-      mid='<div class="mc-when disp">'+k.day+'</div>'+
-        '<div class="mc-time">'+k.time+'</div>';
-    }
-    return '<div class="match-card" style="border-left-color:'+PAL[i%PAL.length]+'">'+
-      teamCellHTML(t1)+
-      '<div class="mc-mid"><span class="mc-tag">'+stageTag(m)+'</span>'+mid+'</div>'+
-      teamCellHTML(t2,true)+'</div>';
-  }
-  // ===== Day screens: yesterday / today / tomorrow (Amsterdam days) =====
+  // ===== Day columns: yesterday / today / tomorrow (Amsterdam days), one screen =====
   var FMT_KEY=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'});
-  var DAY_SCREENS=[
-    {off:-1, host:'ydayGames',  date:'ydayDate',  empty:'No games yesterday.'},
-    {off:0,  host:'todayGames', date:'todayDate', empty:'No games today — rest day.'},
-    {off:1,  host:'tmrwGames',  date:'tmrwDate',  empty:'No games tomorrow.'}
-  ];
   // "Broadcast day": the day rolls over at 06:00 Amsterdam, not midnight — a 03:00
   // kick-off is still "tonight's game" in everyone's head, so it stays on Today.
   var DAY_SHIFT=6*3600*1000;
-  function renderDayScreens(){
+  var DAY_COLS=[
+    {off:-1, cls:'yday',  label:'Yesterday', empty:'No games'},
+    {off:0,  cls:'today', label:'Today',     empty:'Rest day'},
+    {off:1,  cls:'tmrw',  label:'Tomorrow',  empty:'No games'}
+  ];
+  // One fixture/result, compact enough to stack inside a third-width day column.
+  function dayMatchHTML(m,i){
+    var t1=teamBits(m.team1), t2=teamBits(m.team2), res=hasResult(m), w=res?winnerOf(m):null;
+    var right, s1=null, s2=null;
+    if(m.live){ right='<span class="live-badge">LIVE '+m.live.min+'</span>'; s1=m.live.s[0]; s2=m.live.s[1]; }
+    else if(res){
+      s1=m.score.ft[0]; s2=m.score.ft[1];
+      right='<span class="dm-when">'+(m.score.pen?'pens '+m.score.pen[0]+'–'+m.score.pen[1]:(m.score.et?'AET':'FT'))+'</span>';
+    }else{ right='<span class="dm-when">'+kickoff(m).time+'</span>'; }
+    function row(b,goals,win){
+      return '<div class="dm-row'+(win?' win':'')+'">'+
+        '<span class="dm-flag">'+flagHTML(b.flag||'⚽')+'</span>'+
+        '<span class="dm-name">'+b.name+'</span>'+
+        (b.owner?'<span class="dm-own">'+b.owner+'</span>':'')+
+        (goals!=null?'<span class="dm-g">'+goals+'</span>':'')+'</div>';
+    }
+    return '<div class="day-match" style="--accent:'+PAL[i%PAL.length]+'">'+
+      '<div class="dm-head"><span class="dm-tag">'+stageTag(m)+'</span>'+right+'</div>'+
+      row(t1,s1,w===0)+row(t2,s2,w===1)+'</div>';
+  }
+  function renderDays(){
+    var host=document.getElementById('daysHost'); if(!host) return;
     var now=Date.now();
-    DAY_SCREENS.forEach(function(d){
+    host.innerHTML=DAY_COLS.map(function(d){
       var ref=new Date(now-DAY_SHIFT+d.off*86400000), key=FMT_KEY.format(ref);
-      document.getElementById(d.date).textContent=FMT_DAY.format(ref);
       var games=MATCHES.filter(function(m){
         return m.team1 && m.team2 && FMT_KEY.format(new Date(matchDate(m)-DAY_SHIFT))===key;
       }).sort(function(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); });
-      var host=document.getElementById(d.host);
-      host.classList.toggle('dense', games.length>3);
-      host.innerHTML=games.length
-        ? games.map(function(m,i){ return matchCardHTML(m,i); }).join('')
-        : '<div class="empty-card">'+d.empty+' &#9917;</div>';
+      var body=games.length
+        ? '<div class="day-stack">'+games.map(dayMatchHTML).join('')+'</div>'
+        : '<div class="day-empty">'+d.empty+' &#9917;</div>';
+      return '<section class="day-col '+d.cls+'">'+
+        '<header><span class="dl disp">'+d.label+'</span><span class="dd">'+FMT_DAY.format(ref)+'</span></header>'+
+        '<div class="day-games">'+body+'</div></section>';
+    }).join('');
+    fitStacks();
+  }
+  // Scale a day column's card stack down to fit if a busy matchday would overflow.
+  function fitStacks(){
+    document.querySelectorAll('#daysHost .day-games').forEach(function(box){
+      var stack=box.querySelector('.day-stack'); if(!stack) return;
+      stack.style.transform=''; stack.style.width='';
+      var cs=getComputedStyle(box), avail=box.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+      var nat=stack.offsetHeight;
+      if(nat>0 && avail>0 && nat>avail+1){
+        var s=avail/nat;
+        stack.style.width=(100/s).toFixed(2)+'%';
+        stack.style.transform='scale('+s.toFixed(4)+')';
+      }
     });
   }
 
@@ -841,13 +786,8 @@
 
   // ===== Screen rotation =====
   var SCREENS=[
-    {id:'scr-yday', render:renderDayScreens},
-    {id:'scr-today', render:renderDayScreens},
-    {id:'scr-tmrw', render:renderDayScreens},
-    {id:'scr-grp-0', group:true},
-    {id:'scr-grp-1', group:true},
-    {id:'scr-grp-2', group:true},
-    {id:'scr-ranking', group:true, render:renderRanking, hold:30000},
+    {id:'scr-days', render:renderDays, hold:20000},
+    {id:'scr-ranking', render:renderRanking, hold:30000},
     {id:'scr-bracket', render:renderBracket, hold:35000},
     {id:'scr-prizes', ko:true}
   ];
@@ -880,7 +820,8 @@
   });
 
   function renderAll(){
-    renderGroups(); renderRanking(); renderDayScreens(); renderBracket(); updatePrizes();
+    renderDays(); renderRanking(); renderBracket(); updatePrizes();
+    paintSpoon(); // wooden-spoon prize text (group tables removed, so it no longer rides along with them)
     refreshTicker(); // keep the footer ticker in sync with fresh scores
     showScreen(cur); // re-clamps if a phase flip changed the active screen list
   }
