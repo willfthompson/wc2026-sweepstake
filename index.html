@@ -289,7 +289,7 @@
       <div class="prize spoon">
         <div class="medal">&#129378;</div>
         <div class="pt disp">Wooden Spoon</div>
-        <div class="pd">Fewest group points. Most goals conceded breaks ties.</div>
+        <div class="pd">Worst goal difference across the group stage.</div>
         <div class="who" id="prizeSpoon">&mdash;</div>
       </div>
     </div>
@@ -546,8 +546,9 @@
   function paintSpoon(){
     var all=[];
     Object.keys(STATS).forEach(function(n){ var s=STATS[n]; if(s.pld||s.pts||s.gf||s.ga) all.push({name:n,s:s}); });
-    var sp=null; if(all.length){ all.sort(function(a,b){ return a.s.pts-b.s.pts || b.s.ga-a.s.ga; }); sp=all[0]; }
-    document.getElementById('prizeSpoon').textContent= sp?(ownerTag(sp.name)+' — '+sp.s.pts+' pts'):'—';
+    // Spoon = worst group-stage goal difference; ties broken by fewest points, then fewest scored.
+    var sp=null; if(all.length){ all.sort(function(a,b){ return gd(a.s)-gd(b.s) || a.s.pts-b.s.pts || a.s.gf-b.s.gf || a.name.localeCompare(b.name); }); sp=all[0]; }
+    document.getElementById('prizeSpoon').textContent= sp?(ownerTag(sp.name)+' — '+(gd(sp.s)>0?'+':'')+gd(sp.s)+' GD'):'—';
   }
 
   // ===== Match helpers (last / next / bracket) =====
