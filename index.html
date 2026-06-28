@@ -104,7 +104,7 @@
   .rank-pos.p1{ background:var(--sun); color:#3a2b00; }
   .rank-pos.p2{ background:#cfd8e6; color:#2a3550; }
   .rank-pos.p3{ background:#e6b486; color:#46270d; }
-  .rank-pts{ font-weight:800; font-size:1.3em; }
+  .rank-gd{ font-weight:800; font-size:1.3em; }
   .form{ display:inline-flex; gap:.25em; }
   .form-chip{ width:1.5em; height:1.5em; border-radius:5px; color:#fff; font-weight:800;
     display:inline-flex; align-items:center; justify-content:center; font-size:.82em; }
@@ -125,7 +125,6 @@
   .tk-label{ flex:none; white-space:nowrap; font-family:'Bricolage Grotesque',sans-serif; font-weight:800;
     font-size:clamp(12px,2vh,22px); letter-spacing:.3px; padding:.6vh 1.4vh; border-radius:30px; background:rgba(255,255,255,.14); }
   .tk-label.top{ background:var(--magenta); color:#fff; }
-  .tk-label.bot{ background:var(--coral); color:#fff; }
   .tk-label.own{ background:var(--sun); color:#3a2b00; }
   .tk-body{ flex:1; min-width:0; display:flex; justify-content:space-around; align-items:center; gap:1vw;
     overflow:hidden; transition:opacity .4s ease; }
@@ -136,7 +135,6 @@
   .tk-divider{ flex:none; margin:0 1.6vw 0 .8vw; padding:.5vh 1.3vh; border-radius:30px; white-space:nowrap;
     font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:clamp(12px,1.9vh,20px); }
   .tk-divider.top{ background:var(--magenta); color:#fff; }
-  .tk-divider.bot{ background:var(--coral); color:#fff; }
   .tk-divider.own{ background:var(--sun); color:#3a2b00; }
   .tk-item{ display:inline-flex; align-items:center; gap:.5vw; white-space:nowrap;
     font-size:clamp(12px,1.9vh,20px); font-weight:700; }
@@ -147,7 +145,6 @@
   .tk-own{ font-size:.78em; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
     padding:.15em .6em; border-radius:20px; background:rgba(255,255,255,.16); color:#fff; }
   .tk-pts{ font-weight:800; font-size:1.15em; color:var(--lime); }
-  .tk-gd{ font-weight:800; font-size:.82em; opacity:.75; }
 
   /* ===== Day columns: yesterday | today | tomorrow on one screen ===== */
   .days-3{ flex:1; min-height:0; display:flex; gap:1.2vw; }
@@ -373,39 +370,62 @@
   }
   function gd(s){ return s.gf-s.ga; }
 
-  // ===== Footer ticker data: top/bottom teams + owner standings =====
+  // ===== Who's still in it — shared by the standings board and the ticker so they always agree =====
+  // Qualification (2026 rule): top 2 of each group + the 8 best 3rd-placed teams; a team then drops
+  // out by losing a decided knockout tie. Returns a {teamName:true} set of teams still in the running.
+  function aliveSet(){
+    function cmp(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); }
+    var qual={}, thirds=[];
+    Object.keys(GROUPS).forEach(function(g){
+      var r=rankGroup(g);
+      if(r[0]) qual[r[0].name]='auto';
+      if(r[1]) qual[r[1].name]='auto';
+      if(r[2]) thirds.push(r[2]);
+    });
+    thirds.sort(cmp).forEach(function(t,i){ qual[t.name]= i<8 ? 'third' : 'out'; });
+    var lost={};
+    koMatches().forEach(function(m){
+      if(!hasResult(m)) return; var w=winnerOf(m); if(w==null) return;
+      var loser=teamBits(w===0?m.team2:m.team1).name; if(loser) lost[loser]=true;
+    });
+    var set={};
+    Object.keys(STATS).forEach(function(n){
+      var s=STATS[n]; if(s.pld && qual[n] && qual[n]!=='out' && !lost[n]) set[n]=true;
+    });
+    return set;
+  }
+  function aliveSorted(){ var a=aliveSet(); return sortedTeams().filter(function(t){ return a[t.name]; }); }
+
+  // ===== Footer ticker data: teams still in it + owner standings =====
   function sortedTeams(){
     return Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; })
       .sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
   }
-  function ownerStandings(){  // rank each owner by their single best-performing team (pts → GD → GF)
-    var best={};
+  function ownerStandings(){  // rank each owner by their best team STILL in it (GD → GF); owners with
+    var alive=aliveSet(), best={};   // none of their teams left drop off the board entirely
     Object.keys(OWNERS).forEach(function(team){
-      var s=STATS[team]; if(!s) return;
-      var o=OWNERS[team], c={owner:o, team:team, flag:TEAM_FLAG[team], pts:s.pts, gd:gd(s), gf:s.gf};
+      if(!alive[team]) return;
+      var s=STATS[team], o=OWNERS[team], c={owner:o, team:team, flag:TEAM_FLAG[team], gd:gd(s), gf:s.gf};
       var cur=best[o];
-      if(!cur || c.pts>cur.pts || (c.pts===cur.pts && c.gd>cur.gd) || (c.pts===cur.pts && c.gd===cur.gd && c.gf>cur.gf)) best[o]=c;
+      if(!cur || c.gd>cur.gd || (c.gd===cur.gd && c.gf>cur.gf)) best[o]=c;
     });
     return Object.keys(best).map(function(o){ return best[o]; })
-      .sort(function(a,b){ return b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || a.owner.localeCompare(b.owner); });
+      .sort(function(a,b){ return b.gd-a.gd || b.gf-a.gf || a.owner.localeCompare(b.owner); });
   }
-  function tickTeamHTML(t,pos,withGd){  // pos = zero-based overall rank
+  function tickTeamHTML(t,pos){  // pos = zero-based rank; headline number is goal difference
     var own=OWNERS[t.name] ? '<span class="tk-own">'+OWNERS[t.name]+'</span>' : '';
-    var d=gd(t.s), gdHTML=withGd ? '<span class="tk-gd">'+(d>0?'+':'')+d+'</span>' : '';
+    var d=gd(t.s);
     return '<span class="tk-item"><span class="tk-rank">'+(pos+1)+'</span>'+flagHTML(t.flag)+
-      '<span class="tk-name">'+t.name+'</span>'+own+'<span class="tk-pts">'+t.s.pts+'</span>'+gdHTML+'</span>';
+      '<span class="tk-name">'+t.name+'</span>'+own+'<span class="tk-pts">'+(d>0?'+':'')+d+'</span></span>';
   }
-  function tickOwnerHTML(o,i){  // o = owner's best team {owner, team, flag, pts, gd}
+  function tickOwnerHTML(o,i){  // o = owner's best surviving team {owner, team, flag, gd}
     return '<span class="tk-item"><span class="tk-rank">'+(i+1)+'</span>'+
       '<span class="tk-name">'+o.owner+'</span>'+
       '<span class="tk-own">'+flagHTML(o.flag)+' '+o.team+'</span>'+
-      '<span class="tk-pts">'+o.pts+'</span>'+
-      '<span class="tk-gd">'+(o.gd>0?'+':'')+o.gd+'</span></span>';
+      '<span class="tk-pts">'+(o.gd>0?'+':'')+o.gd+'</span></span>';
   }
-  // Bottom-10 shows true overall positions (e.g. 39–48), least-bad to worst, so the rank numbers stay honest.
   var TK_FRAMES=[
-    {label:'🔥 Top 10', cls:'top', build:function(){ var a=sortedTeams(); return a.slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }); }},
-    {label:'🥄 Bottom 10', cls:'bot', build:function(){ var a=sortedTeams(); return a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i,true); }); }},
+    {label:'🔥 Top teams', cls:'top', build:function(){ return aliveSorted().slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }); }},
     {label:'🏆 Owner standings', cls:'own', build:function(){ return ownerStandings().map(tickOwnerHTML); }}
   ];
   var tkFrame=0;
@@ -421,17 +441,14 @@
     body.style.opacity=0;
     setTimeout(function(){ paintTicker(); body.style.opacity=1; }, 400);
   }
-  // Continuous news-ticker scroll: one long strip (top → bottom → owners) streaming right-to-left.
+  // Continuous news-ticker scroll: one long strip (top teams → owner standings) streaming right-to-left.
   var reduceMotion=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var lastMarquee='';
   function buildMarquee(){
     var host=document.getElementById('tkBody'); if(!host) return;
     host.classList.add('tk-scroll');
-    var a=sortedTeams();
-    var seg='<span class="tk-divider top">🔥 Top 10</span>'+
-      a.slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }).join('')+
-      '<span class="tk-divider bot">🥄 Bottom 10</span>'+
-      a.slice(-10).map(function(t,i){ return tickTeamHTML(t,a.length-10+i,true); }).join('')+
+    var seg='<span class="tk-divider top">🔥 Top teams</span>'+
+      aliveSorted().slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }).join('')+
       '<span class="tk-divider own">🏆 Owner standings</span>'+
       ownerStandings().map(tickOwnerHTML).join('');
     if(seg===lastMarquee) return;          // unchanged → leave the scroll running, don't restart it
@@ -448,20 +465,29 @@
     return arr;
   }
 
-  // Scale a dense table down to fit its container exactly so rows never clip; width is kept via inverse-scale.
+  // Scale a table to fill its container's height exactly — shrinks a dense table so rows never
+  // clip, and grows a short one so it never leaves whitespace below. The table is laid out at
+  // width = 100/s% then scaled by s, so it ends up exactly 100% wide. Because row heights depend
+  // on the layout width (content reflows as columns widen/narrow), a single pass mis-estimates;
+  // we iterate, measuring the height at the width we're about to apply, until it converges.
   function fitTables(sel){
     document.querySelectorAll(sel).forEach(function(box){
       var tbl=box.querySelector('table'); if(!tbl) return;
-      tbl.style.transformOrigin='top left'; tbl.style.transform=''; tbl.style.width='';
-      tbl.style.flex='none'; tbl.style.height='auto';                 // release flex:1 to measure natural height
+      tbl.style.transformOrigin='top left';
       var avail=box.clientHeight;
-      Array.prototype.forEach.call(box.children, function(ch){ if(ch!==tbl) avail-=ch.offsetHeight; }); // minus group <h3>
-      var nat=tbl.offsetHeight;
-      if(nat>0 && avail>0 && nat>avail+1){
-        var s=(avail-1)/nat;
-        tbl.style.width=(100/s).toFixed(3)+'%';
-        tbl.style.transform='scale('+s.toFixed(4)+')';
-      }else{ tbl.style.flex=''; tbl.style.height=''; }                // already fits → let it fill normally
+      Array.prototype.forEach.call(box.children, function(ch){ if(ch!==tbl) avail-=ch.offsetHeight; }); // minus any header
+      if(avail<=0) return;
+      var w=100, nat=0;
+      for(var i=0;i<5;i++){
+        tbl.style.transform='none'; tbl.style.flex='none'; tbl.style.height='auto'; tbl.style.width=w+'%';
+        nat=tbl.offsetHeight; if(nat<=0) return;
+        var nw=100*nat/avail;                       // layout width that, once scaled to fill, renders 100% wide
+        if(Math.abs(nw-w)<0.3){ w=nw; break; }
+        w=nw;
+      }
+      var s=(avail-1)/nat;                          // <1 shrinks to fit, >1 grows to fill
+      tbl.style.width=w.toFixed(3)+'%';
+      tbl.style.transform='scale('+s.toFixed(4)+')';
     });
   }
   function fitDense(){ fitTables('#rankHost .rank-col'); fitStacks(); }
@@ -471,22 +497,7 @@
     var host=document.getElementById('rankHost'); if(!host) return;
     function cmp(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); }
 
-    // Qualification (2026 rule): top 2 of every group + the 8 best 3rd-placed teams.
-    var qual={}, thirds=[];
-    Object.keys(GROUPS).forEach(function(g){
-      var r=rankGroup(g);
-      if(r[0]) qual[r[0].name]='auto';
-      if(r[1]) qual[r[1].name]='auto';
-      if(r[2]) thirds.push(r[2]);
-    });
-    thirds.sort(cmp).forEach(function(t,i){ qual[t.name]= i<8 ? 'third' : 'out'; });
-
-    // Knockout casualties: the losing side of any decided knockout tie is out of the running.
-    var koLost={};
-    koMatches().forEach(function(m){
-      if(!hasResult(m)) return; var w=winnerOf(m); if(w==null) return;
-      var loser=teamBits(w===0?m.team2:m.team1).name; if(loser) koLost[loser]=true;
-    });
+    var alive=aliveSet();   // teams still in the competition (the same set the footer ticker uses)
 
     // Form guide: each team's results in match order (finished group games only).
     var form={}; Object.keys(STATS).forEach(function(n){ form[n]=[]; });
@@ -505,11 +516,11 @@
 
     function rowHTML(t,rank){
       var played=t.s.pld>0, gv=gd(t.s);
-      var alive=played && qual[t.name] && qual[t.name]!=='out' && !koLost[t.name];
+      var isAlive=!!alive[t.name];
       var own=OWNERS[t.name]?'<span class="owner">'+OWNERS[t.name]+'</span>':'<span class="owner" style="opacity:.45">unassigned</span>';
       var chips=(form[t.name]||[]).map(function(r){ return '<span class="form-chip '+r.toLowerCase()+'">'+r+'</span>'; }).join('');
       var posCls=rank===1?'p1':rank===2?'p2':rank===3?'p3':'';
-      var cls = !played ? 'notplayed' : (alive ? 'alive' : 'elim');
+      var cls = !played ? 'notplayed' : (isAlive ? 'alive' : 'elim');
       return '<tr class="'+cls+'">'+
         '<td><span class="rank-pos '+posCls+'">'+rank+'</span></td>'+
         '<td class="team"><span class="flag">'+flagHTML(t.flag)+'</span><span class="tname">'+t.name+'</span>'+own+'</td>'+
@@ -517,15 +528,14 @@
         '<td>'+t.s.w+'</td>'+
         '<td>'+t.s.d+'</td>'+
         '<td>'+t.s.l+'</td>'+
-        '<td>'+(played?(gv>0?'+':'')+gv:'&mdash;')+'</td>'+
-        '<td class="rank-pts">'+t.s.pts+'</td></tr>';
+        '<td class="rank-gd">'+(played?(gv>0?'+':'')+gv:'&mdash;')+'</td></tr>';
     }
 
     var html='';
     for(var c=0;c<3;c++){
       var rows=teams.slice(c*16,c*16+16).map(function(t,i){ return rowHTML(t,c*16+i+1); }).join('');
       html+='<div class="rank-col"><table class="rank-tbl">'+
-        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>'+
+        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>W</th><th>D</th><th>L</th><th>GD</th></tr></thead>'+
         '<tbody>'+rows+'</tbody></table></div>';
     }
     host.innerHTML=html;
@@ -939,6 +949,16 @@
   else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='📊 Standings'; tkLbl.className='tk-label'; buildMarquee(); }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDense); // re-fit once webfonts change row heights
   window.addEventListener('resize', fitDense);
+  // The fit math depends on the final laid-out column height, which only settles after fonts load
+  // and the screen reflows. Re-fit whenever the table hosts actually change size so the scale is
+  // always computed against the real height (no leftover whitespace, no clipping). rAF-debounced.
+  if(window.ResizeObserver){
+    var fitRaf=null, ro=new ResizeObserver(function(){
+      if(fitRaf) cancelAnimationFrame(fitRaf);
+      fitRaf=requestAnimationFrame(fitDense);
+    });
+    ['rankHost','daysHost'].forEach(function(id){ var el=document.getElementById(id); if(el) ro.observe(el); });
+  }
   pull(); setInterval(pull, 5*60000);      // daily-feed refresh every 5 min
   setInterval(pullLive, 60000);            // in-play scores every minute
 })();
