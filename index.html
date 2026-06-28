@@ -125,17 +125,12 @@
   .tk-label{ flex:none; white-space:nowrap; font-family:'Bricolage Grotesque',sans-serif; font-weight:800;
     font-size:clamp(12px,2vh,22px); letter-spacing:.3px; padding:.6vh 1.4vh; border-radius:30px; background:rgba(255,255,255,.14); }
   .tk-label.top{ background:var(--magenta); color:#fff; }
-  .tk-label.own{ background:var(--sun); color:#3a2b00; }
   .tk-body{ flex:1; min-width:0; display:flex; justify-content:space-around; align-items:center; gap:1vw;
     overflow:hidden; transition:opacity .4s ease; }
   .tk-body.tk-scroll{ justify-content:flex-start; gap:0; }   /* continuous news-ticker scroll mode */
   .tk-track{ flex:none; display:flex; align-items:center; will-change:transform;
     animation:tkscroll linear infinite; }
   @keyframes tkscroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-  .tk-divider{ flex:none; margin:0 1.6vw 0 .8vw; padding:.5vh 1.3vh; border-radius:30px; white-space:nowrap;
-    font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:clamp(12px,1.9vh,20px); }
-  .tk-divider.top{ background:var(--magenta); color:#fff; }
-  .tk-divider.own{ background:var(--sun); color:#3a2b00; }
   .tk-item{ display:inline-flex; align-items:center; gap:.5vw; white-space:nowrap;
     font-size:clamp(12px,1.9vh,20px); font-weight:700; }
   .tk-track .tk-item{ flex:none; margin-right:2.2vw; }
@@ -394,63 +389,48 @@
     });
     return set;
   }
-  function aliveSorted(){ var a=aliveSet(); return sortedTeams().filter(function(t){ return a[t.name]; }); }
+  // Every team still in it, ranked by goal difference (then goals scored) — what the footer ticker loops.
+  function aliveSorted(){
+    var a=aliveSet();
+    return Object.keys(STATS).filter(function(n){ return a[n]; })
+      .map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; })
+      .sort(function(x,y){ return gd(y.s)-gd(x.s) || y.s.gf-x.s.gf || x.name.localeCompare(y.name); });
+  }
 
-  // ===== Footer ticker data: teams still in it + owner standings =====
-  function sortedTeams(){
-    return Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; })
-      .sort(function(a,b){ return b.s.pts-a.s.pts || gd(b.s)-gd(a.s) || b.s.gf-a.s.gf || a.name.localeCompare(b.name); });
-  }
-  function ownerStandings(){  // rank each owner by their best team STILL in it (GD → GF); owners with
-    var alive=aliveSet(), best={};   // none of their teams left drop off the board entirely
-    Object.keys(OWNERS).forEach(function(team){
-      if(!alive[team]) return;
-      var s=STATS[team], o=OWNERS[team], c={owner:o, team:team, flag:TEAM_FLAG[team], gd:gd(s), gf:s.gf};
-      var cur=best[o];
-      if(!cur || c.gd>cur.gd || (c.gd===cur.gd && c.gf>cur.gf)) best[o]=c;
-    });
-    return Object.keys(best).map(function(o){ return best[o]; })
-      .sort(function(a,b){ return b.gd-a.gd || b.gf-a.gf || a.owner.localeCompare(b.owner); });
-  }
+  // ===== Footer ticker: loop every team still in it, with its goal difference =====
   function tickTeamHTML(t,pos){  // pos = zero-based rank; headline number is goal difference
     var own=OWNERS[t.name] ? '<span class="tk-own">'+OWNERS[t.name]+'</span>' : '';
     var d=gd(t.s);
     return '<span class="tk-item"><span class="tk-rank">'+(pos+1)+'</span>'+flagHTML(t.flag)+
       '<span class="tk-name">'+t.name+'</span>'+own+'<span class="tk-pts">'+(d>0?'+':'')+d+'</span></span>';
   }
-  function tickOwnerHTML(o,i){  // o = owner's best surviving team {owner, team, flag, gd}
-    return '<span class="tk-item"><span class="tk-rank">'+(i+1)+'</span>'+
-      '<span class="tk-name">'+o.owner+'</span>'+
-      '<span class="tk-own">'+flagHTML(o.flag)+' '+o.team+'</span>'+
-      '<span class="tk-pts">'+(o.gd>0?'+':'')+o.gd+'</span></span>';
+  // Reduced-motion fallback: the same teams paginated 10-per-frame instead of a continuous scroll.
+  function tkFrames(){
+    var teams=aliveSorted(), pages=[];
+    for(var i=0;i<teams.length;i+=10) pages.push(teams.slice(i,i+10));
+    if(!pages.length) pages.push([]);
+    return pages.map(function(chunk,p){ return { build:function(){ return chunk.map(function(t,i){ return tickTeamHTML(t,p*10+i); }); } }; });
   }
-  var TK_FRAMES=[
-    {label:'🔥 Top teams', cls:'top', build:function(){ return aliveSorted().slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }); }},
-    {label:'🏆 Owner standings', cls:'own', build:function(){ return ownerStandings().map(tickOwnerHTML); }}
-  ];
   var tkFrame=0;
   function paintTicker(){
-    var f=TK_FRAMES[tkFrame], lbl=document.getElementById('tkLabel'), body=document.getElementById('tkBody');
+    var frames=tkFrames(), lbl=document.getElementById('tkLabel'), body=document.getElementById('tkBody');
     if(!lbl||!body) return;
-    lbl.textContent=f.label; lbl.className='tk-label '+f.cls;
-    body.innerHTML=f.build().join('');
+    lbl.textContent='🔥 Still in it'; lbl.className='tk-label top';
+    body.innerHTML=frames[tkFrame % frames.length].build().join('');
   }
   function advanceTicker(){
-    tkFrame=(tkFrame+1)%TK_FRAMES.length;
+    tkFrame=(tkFrame+1)%tkFrames().length;
     var body=document.getElementById('tkBody'); if(!body){ paintTicker(); return; }
     body.style.opacity=0;
     setTimeout(function(){ paintTicker(); body.style.opacity=1; }, 400);
   }
-  // Continuous news-ticker scroll: one long strip (top teams → owner standings) streaming right-to-left.
+  // Continuous news-ticker scroll: one long strip of every team still in it, streaming right-to-left.
   var reduceMotion=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var lastMarquee='';
   function buildMarquee(){
     var host=document.getElementById('tkBody'); if(!host) return;
     host.classList.add('tk-scroll');
-    var seg='<span class="tk-divider top">🔥 Top teams</span>'+
-      aliveSorted().slice(0,10).map(function(t,i){ return tickTeamHTML(t,i); }).join('')+
-      '<span class="tk-divider own">🏆 Owner standings</span>'+
-      ownerStandings().map(tickOwnerHTML).join('');
+    var seg=aliveSorted().map(function(t,i){ return tickTeamHTML(t,i); }).join('');
     if(seg===lastMarquee) return;          // unchanged → leave the scroll running, don't restart it
     lastMarquee=seg;
     host.innerHTML='<div class="tk-track">'+seg+seg+'</div>'; // duplicated so translateX(-50%) loops seamlessly
@@ -947,7 +927,7 @@
 
   renderAll(); showScreen(0); resetTimer();
   if(reduceMotion){ paintTicker(); setInterval(advanceTicker, 12000); } // crossfade fallback when motion is reduced
-  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='📊 Standings'; tkLbl.className='tk-label'; buildMarquee(); }
+  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='🔥 Still in it'; tkLbl.className='tk-label top'; buildMarquee(); }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDense); // re-fit once webfonts change row heights
   window.addEventListener('resize', fitDense);
   // The fit math depends on the final laid-out column height, which only settles after fonts load
