@@ -6,7 +6,7 @@
 <title>World Cup 2026 Sweepstake</title>
 </head>
 <body>
-<!-- World Cup 2026 Sweepstake — office-TV kiosk: rotates through yesterday/today/tomorrow match screens and group tables (bracket + prizes once the knockouts start). Standings auto-update from openfootball/worldcup.json (public domain, no API key); in-play scores overlay from worldcup26.ir (community, best-effort). Flags are Twemoji SVGs since Windows has no flag emoji. -->
+<!-- World Cup 2026 Sweepstake — office-TV kiosk: rotates through yesterday/today/tomorrow match screens and group tables (bracket + prizes once the knockouts start). Standings auto-update from openfootball/worldcup.json (public domain, no API key); in-play scores overlay from worldcup26.ir (community, best-effort). All emoji (flags, trophies, medals, status dots) are Twemoji SVGs since kiosk OSes (Windows, Raspberry-Pi Linux) lack colour-emoji fonts. -->
 <div id="wc-root">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Montserrat:wght@500;600;700;800&display=swap');
@@ -66,6 +66,9 @@
 
   /* Flags render as Twemoji SVGs — Windows browsers have no flag emoji glyphs */
   .flagimg{ width:1em; height:1em; vertical-align:-.12em; }
+  /* Decorative emojis (trophies, medals, status dots…) are Twemoji SVGs too, so they render on
+     Linux / Raspberry-Pi kiosks that ship no colour-emoji font. Same CDN + fallback as the flags. */
+  .emoji{ width:1em; height:1em; vertical-align:-.12em; }
 
   /* ===== Shared league-table styles (overall standings) ===== */
   table{ width:100%; border-collapse:collapse; font-size:clamp(11px,2cqh,22px); flex:1; }
@@ -240,7 +243,7 @@
 <header id="kioskHead">
   <div class="bunting" id="bunting"></div>
   <div class="confetti" id="confetti"></div>
-  <h1 class="disp">&#127942; World Cup 2026 Office Sweepstake</h1>
+  <h1 class="disp"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f3c6.svg" alt="🏆" onerror="this.outerHTML=this.alt"> World Cup 2026 Office Sweepstake</h1>
   <span class="grow"></span>
   <span id="databar"><span class="dot pulse" id="statusDot"></span><span id="statusText" class="muted">Connecting to live scores&hellip;</span></span>
   <nav id="dotsNav" aria-label="Screens"></nav>
@@ -250,39 +253,39 @@
 <main id="stage">
 
   <section class="screen" id="scr-days">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#9917;</span>Fixtures &amp; results</h2>
+    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/26bd.svg" alt="⚽" onerror="this.outerHTML=this.alt"></span>Fixtures &amp; results</h2>
     <div class="days-3" id="daysHost"></div>
   </section>
 
   <section class="screen" id="scr-ranking">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)">&#127942;</span>Standings &amp; form</h2>
+    <h2 class="scr-title disp"><span class="n" style="background:var(--teal)"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f3c6.svg" alt="🏆" onerror="this.outerHTML=this.alt"></span>Standings &amp; form</h2>
     <div class="rank-sub">All 48 teams by group-stage form &mdash; <b style="color:var(--good)">green</b> are still in it, <b style="color:var(--bad)">red</b> are eliminated.</div>
     <div class="rank-cols" id="rankHost"></div>
   </section>
 
   <section class="screen" id="scr-bracket">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)">&#9876;&#65039;</span>Knockout bracket</h2>
+    <h2 class="scr-title disp"><span class="n" style="background:var(--blue)"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2694.svg" alt="⚔️" onerror="this.outerHTML=this.alt"></span>Knockout bracket</h2>
     <div class="bracket-note" id="bracketNote"></div>
     <div class="bracket" id="bracket"></div>
   </section>
 
   <section class="screen" id="scr-prizes">
-    <h2 class="scr-title disp"><span class="n" style="background:var(--sun)">&#127881;</span>Prizes</h2>
+    <h2 class="scr-title disp"><span class="n" style="background:var(--sun)"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f389.svg" alt="🎉" onerror="this.outerHTML=this.alt"></span>Prizes</h2>
     <div class="prizes">
       <div class="prize win">
-        <div class="medal">&#129351;</div>
+        <div class="medal"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f947.svg" alt="🥇" onerror="this.outerHTML=this.alt"></div>
         <div class="pt disp">Winner</div>
         <div class="pd">Owner of the team that lifts the trophy.</div>
         <div class="who" id="prizeWin">&mdash;</div>
       </div>
       <div class="prize third">
-        <div class="medal">&#129353;</div>
+        <div class="medal"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f949.svg" alt="🥉" onerror="this.outerHTML=this.alt"></div>
         <div class="pt disp">3rd place</div>
         <div class="pd">Owner of the third-place play-off winner.</div>
         <div class="who" id="prizeThird">&mdash;</div>
       </div>
       <div class="prize spoon">
-        <div class="medal">&#129378;</div>
+        <div class="medal"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f944.svg" alt="🥄" onerror="this.outerHTML=this.alt"></div>
         <div class="pt disp">Wooden Spoon</div>
         <div class="pd">Worst goal difference across the group stage.</div>
         <div class="who" id="prizeSpoon">&mdash;</div>
@@ -353,16 +356,19 @@
   }); });
   var MATCHES=[]; // full feed match list (group + knockout), kept for last/next/bracket screens
 
-  // Flag emoji -> Twemoji SVG <img>. Windows ships no flag emoji glyphs, so raw emoji
-  // shows as "MX"/"ZA" letters there; an image renders everywhere. Falls back to the
-  // emoji text if the CDN is unreachable.
+  // Emoji -> Twemoji SVG <img>. Windows ships no flag-emoji glyphs and Linux / Raspberry-Pi kiosks
+  // often ship no colour-emoji font at all, so raw emoji shows as "MX" letters or tofu boxes there;
+  // an image renders everywhere. Falls back to the emoji text if the CDN is unreachable.
   var TWEMOJI='https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/';
-  function flagHTML(emoji){
+  function twemojiImg(emoji,cls){
     if(!emoji) return '';
     var code=Array.from(emoji).map(function(c){ return c.codePointAt(0).toString(16); })
       .filter(function(h){ return h!=='fe0f'; }).join('-');
-    return '<img class="flagimg" src="'+TWEMOJI+code+'.svg" alt="'+emoji+'" onerror="this.outerHTML=this.alt">';
+    return '<img class="'+cls+'" src="'+TWEMOJI+code+'.svg" alt="'+emoji+'" onerror="this.outerHTML=this.alt">';
   }
+  function flagHTML(emoji){ return twemojiImg(emoji,'flagimg'); }   // country flags in tables/ties
+  function emoHTML(emoji){ return twemojiImg(emoji,'emoji'); }      // decorative icons (trophy, medals, status…)
+  function esc(s){ return String(s).replace(/[&<>]/g,function(c){ return c==='&'?'&amp;':c==='<'?'&lt;':'&gt;'; }); }
   function gd(s){ return s.gf-s.ga; }
 
   // ===== Who's still in it — shared by the standings board and the ticker so they always agree =====
@@ -415,7 +421,7 @@
   function paintTicker(){
     var frames=tkFrames(), lbl=document.getElementById('tkLabel'), body=document.getElementById('tkBody');
     if(!lbl||!body) return;
-    lbl.textContent='📊 GD Stats'; lbl.className='tk-label top';
+    lbl.innerHTML=emoHTML('📊')+' GD Stats'; lbl.className='tk-label top';
     body.innerHTML=frames[tkFrame % frames.length].build().join('');
   }
   function advanceTicker(){
@@ -623,7 +629,7 @@
       }).sort(function(a,b){ return matchDate(a)-matchDate(b) || (a.num||0)-(b.num||0); });
       var body=games.length
         ? '<div class="day-stack">'+games.map(dayMatchHTML).join('')+'</div>'
-        : '<div class="day-empty">'+d.empty+' &#9917;</div>';
+        : '<div class="day-empty">'+d.empty+' '+emoHTML('⚽')+'</div>';
       return '<section class="day-col '+d.cls+'">'+
         '<header><span class="dl disp">'+d.label+'</span><span class="dd">'+FMT_DAY.format(ref)+'</span></header>'+
         '<div class="day-games">'+body+'</div></section>';
@@ -775,8 +781,8 @@
     host.innerHTML=
       '<div class="wing left">'+wing('l')+'</div>'+
       '<div class="center">'+
-        '<div class="final"><div class="ttl">CHAMPIONS</div><div class="cup">&#127942;</div><div class="champ">'+champ+'</div></div>'+
-        '<div class="third-box">&#129353; 3RD-PLACE PLAY-OFF</div></div>'+
+        '<div class="final"><div class="ttl">CHAMPIONS</div><div class="cup">'+emoHTML('🏆')+'</div><div class="champ">'+champ+'</div></div>'+
+        '<div class="third-box">'+emoHTML('🥉')+' 3RD-PLACE PLAY-OFF</div></div>'+
       '<div class="wing right">'+wing('r')+'</div>';
   }
   function updatePrizes(){
@@ -791,16 +797,16 @@
 
   // ===== Screen rotation =====
   var SCREENS=[
-    {id:'scr-days', render:renderDays, hold:20000},
-    {id:'scr-ranking', render:renderRanking, hold:30000},
-    {id:'scr-bracket', render:renderBracket, hold:35000},
+    {id:'scr-days', render:renderDays},
+    {id:'scr-ranking', render:renderRanking},
+    {id:'scr-bracket', render:renderBracket},
     {id:'scr-prizes', ko:true}
   ];
   function activeScreens(){
     var ko=isKnockoutPhase();
     return SCREENS.filter(function(s){ return ko ? !s.group : !s.ko; });
   }
-  var cur=0, ROTATE_MS=15000, timer=null;
+  var cur=0, ROTATE_MS=20000, timer=null;   // every page dwells 20s (per-screen `hold` can still override)
   function showScreen(i){
     var act=activeScreens();
     cur=((i%act.length)+act.length)%act.length;
@@ -834,10 +840,10 @@
   // ===== Live data: openfootball/worldcup.json (public domain, no key, CORS-friendly) =====
   // Results are community-maintained and refreshed roughly once a day, not second-by-second.
   var FEED='https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
-  function setStatus(live,text){
+  function setStatus(live,text,icon){
     var bar=document.getElementById('databar'), dot=document.getElementById('statusDot'), st=document.getElementById('statusText');
     bar.classList.toggle('live',!!live); dot.classList.toggle('pulse',!!live);
-    st.textContent=text; st.classList.toggle('muted',!live);
+    st.innerHTML=(icon?emoHTML(icon)+' ':'')+esc(text); st.classList.toggle('muted',!live); // innerHTML so the Twemoji icon renders; text is escaped
   }
   // Map openfootball team names -> our labels
   function alias(n){
@@ -887,10 +893,10 @@
       MATCHES=data.matches||[];
       var played=computeFromMatches(MATCHES);
       renderAll();
-      if(played){ setStatus(true,'🟢 Live — '+played+' group games in, updated '+FMT_TIME.format(new Date())); }
-      else { setStatus(true,'🟢 Connected — no group results yet. Scores appear here automatically.'); }
+      if(played){ setStatus(true,'Live — '+played+' group games in, updated '+FMT_TIME.format(new Date()),'🟢'); }
+      else { setStatus(true,'Connected — no group results yet. Scores appear here automatically.','🟢'); }
       pullLive(); // re-apply in-play overlay: the refetch above rebuilt MATCHES and dropped it
-    }catch(e){ setStatus(false,'⚠️ Couldn’t load results ('+e.message+'). You can still edit every score by hand.'); }
+    }catch(e){ setStatus(false,'Couldn’t load results ('+e.message+'). You can still edit every score by hand.','⚠️'); }
   }
 
   // ===== In-play overlay: worldcup26.ir (community-run, no key, CORS-open) =====
@@ -931,8 +937,8 @@
       if(changed){ computeFromMatches(MATCHES); renderAll(); }
       if(liveNow.length){
         var m0=liveNow[0], b1=teamBits(m0.team1), b2=teamBits(m0.team2);
-        setStatus(true,'🔴 LIVE — '+b1.name+' '+m0.live.s[0]+'–'+m0.live.s[1]+' '+b2.name+
-          (liveNow.length>1?' +'+(liveNow.length-1)+' more':'')+' · '+FMT_TIME.format(new Date()));
+        setStatus(true,'LIVE — '+b1.name+' '+m0.live.s[0]+'–'+m0.live.s[1]+' '+b2.name+
+          (liveNow.length>1?' +'+(liveNow.length-1)+' more':'')+' · '+FMT_TIME.format(new Date()),'🔴');
       }
     }catch(e){ /* live layer is best-effort; the daily feed keeps working */ }
   }
@@ -941,7 +947,7 @@
 
   renderAll(); showScreen(0); resetTimer();
   if(reduceMotion){ paintTicker(); setInterval(advanceTicker, 12000); } // crossfade fallback when motion is reduced
-  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='📊 GD Stats'; tkLbl.className='tk-label top'; buildMarquee(); }
+  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.innerHTML=emoHTML('📊')+' GD Stats'; tkLbl.className='tk-label top'; buildMarquee(); }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDense); // re-fit once webfonts change row heights
   window.addEventListener('resize', fitDense);
   // The fit math depends on the final laid-out column height, which only settles after fonts load
