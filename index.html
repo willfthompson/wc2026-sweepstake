@@ -415,7 +415,7 @@
   function paintTicker(){
     var frames=tkFrames(), lbl=document.getElementById('tkLabel'), body=document.getElementById('tkBody');
     if(!lbl||!body) return;
-    lbl.textContent='🔥 Still in it'; lbl.className='tk-label top';
+    lbl.textContent='📊 GD Stats'; lbl.className='tk-label top';
     body.innerHTML=frames[tkFrame % frames.length].build().join('');
   }
   function advanceTicker(){
@@ -927,7 +927,7 @@
 
   renderAll(); showScreen(0); resetTimer();
   if(reduceMotion){ paintTicker(); setInterval(advanceTicker, 12000); } // crossfade fallback when motion is reduced
-  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='🔥 Still in it'; tkLbl.className='tk-label top'; buildMarquee(); }
+  else { var tkLbl=document.getElementById('tkLabel'); tkLbl.textContent='📊 GD Stats'; tkLbl.className='tk-label top'; buildMarquee(); }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDense); // re-fit once webfonts change row heights
   window.addEventListener('resize', fitDense);
   // The fit math depends on the final laid-out column height, which only settles after fonts load
