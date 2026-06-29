@@ -199,8 +199,8 @@
   .tie .slot b{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .tie .slot.empty{ color:var(--grey); font-weight:600; }
   .tie .slot.win{ color:var(--good); }
-  .tie .t-owner{ font-style:normal; font-size:.85em; color:var(--ink-2); font-weight:700; text-transform:uppercase; letter-spacing:.3px; flex:none;
-    background:var(--cloud); border:1px solid var(--line); padding:.1vh .7vh; border-radius:20px; }
+  .tie .t-owner{ font-style:normal; font-size:.72em; color:var(--ink-2); font-weight:700; text-transform:uppercase; letter-spacing:.2px; flex:none;
+    background:var(--cloud); border:1px solid var(--line); padding:.1vh .5vh; border-radius:20px; max-width:5.5em; overflow:hidden; text-overflow:ellipsis; }
   .tie .g{ margin-left:auto; font-weight:800; flex:none; }
   .wing.right .tie .g{ margin-left:0; margin-right:auto; }
   .tie .fc-badge{ margin-left:auto; flex:none; font-size:.62em; font-weight:800; letter-spacing:.5px;
@@ -532,11 +532,25 @@
   }
 
   // ===== Match helpers (last / next / bracket) =====
-  // Resolve a feed name to {name, flag, owner}; knockout placeholders ("Winner Match 74") pass through plain.
+  // Knockout fixtures reference earlier matches by number — "W73" = winner of match 73, "L101" =
+  // loser of match 101. Resolve those to the actual team once that match is decided, recursing so a
+  // later round fills in as soon as its feeders settle (W90 → resolves once match 90 is played).
+  function resolveSlot(raw,depth){
+    var m=String(raw||'').match(/^([WL])\s*(\d+)$/i);
+    if(!m || depth>10) return raw;
+    var num=+m[2], src=null;
+    for(var i=0;i<MATCHES.length;i++){ if((MATCHES[i].num|0)===num){ src=MATCHES[i]; break; } }
+    if(!src || !hasResult(src)) return raw;          // not played yet → leave the placeholder
+    var w=winnerOf(src); if(w==null) return raw;      // drawn with no shoot-out recorded → undecided
+    var want = m[1].toUpperCase()==='W' ? w : 1-w;    // W = winner side, L = the other side
+    return resolveSlot(want===0?src.team1:src.team2, (depth||0)+1);
+  }
+  // Resolve a feed name to {name, flag, owner}; unresolved knockout placeholders pass through plain.
   function teamBits(raw){
-    var n=matchName(raw);
+    var resolved=resolveSlot(raw,0);
+    var n=matchName(resolved);
     if(n) return {name:n, flag:TEAM_FLAG[n]||'', owner:OWNERS[n]||null};
-    return {name:String(raw||'TBD'), flag:'', owner:null};
+    return {name:String(resolved||'TBD'), flag:'', owner:null};
   }
   // ===== Amsterdam-local dates: the board lives in the Amsterdam office =====
   var TZ='Europe/Amsterdam';
