@@ -102,6 +102,13 @@
   .rank-tbl tr.elim td:first-child{ box-shadow:inset 6px 0 0 var(--bad); }
   .rank-tbl tr.elim .tname{ color:var(--grey); }
   .rank-tbl tr.notplayed td{ opacity:.5; }
+  /* Eliminated teams collapse to one compact line (name · owner · exit round), freeing vertical
+     space so the surviving teams' rows — and their form chips — scale up larger. */
+  .rank-tbl tr.slim td{ padding-top:.3cqh; padding-bottom:.3cqh; }
+  .rank-tbl tr.slim .owner{ display:inline-block; margin-top:0; margin-left:.6vw; vertical-align:middle; }
+  .rank-tbl tr.slim .flag{ font-size:clamp(13px,2.2cqh,24px); }
+  .rank-tbl .exit{ text-align:right; padding-right:1vw; white-space:nowrap; font-weight:800;
+    text-transform:uppercase; letter-spacing:.4px; font-size:.72em; color:var(--bad); }
   .rank-pos{ display:inline-flex; align-items:center; justify-content:center; min-width:1.9em; height:1.9em;
     border-radius:8px; font-weight:800; background:var(--cloud); color:var(--ink); }
   .rank-pos.p1{ background:var(--sun); color:#3a2b00; }
@@ -213,6 +220,9 @@
   .tie .fc-badge.tbc{ background:var(--cloud); color:var(--grey); border:1px solid var(--line); }
   .bracket-note{ font-size:clamp(10px,1.6vh,15px); color:var(--grey); font-weight:600; margin:-.2vh 0 1vh; }
   .bracket-note .lk{ color:var(--good); } .bracket-note .tb{ color:var(--grey); }
+  /* Shoot-out / extra-time footnote under a knockout tie, e.g. "pens 3–4". */
+  .tie-note{ text-align:center; font-weight:800; letter-spacing:.3px; color:var(--grey);
+    font-size:clamp(7px,1.1vh,12px); margin-top:.2vh; }
   .final{ border-radius:16px; padding:2vh 1vw; text-align:center;
     background:linear-gradient(135deg,var(--sun),var(--tang)); color:#3a2400;
     box-shadow:0 12px 30px rgba(255,122,51,.35); }
@@ -259,7 +269,7 @@
 
   <section class="screen" id="scr-ranking">
     <h2 class="scr-title disp"><span class="n" style="background:var(--teal)"><img class="emoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f3c6.svg" alt="🏆" onerror="this.outerHTML=this.alt"></span>Standings &amp; form</h2>
-    <div class="rank-sub">All 48 teams by group-stage form &mdash; <b style="color:var(--good)">green</b> are still in it, <b style="color:var(--bad)">red</b> are eliminated.</div>
+    <div class="rank-sub">All 48 teams by overall record &mdash; <b style="color:var(--good)">green</b> are still in it, <b style="color:var(--bad)">red</b> are eliminated.</div>
     <div class="rank-cols" id="rankHost"></div>
   </section>
 
@@ -478,6 +488,19 @@
   }
   function fitDense(){ fitTables('#rankHost .rank-col'); fitStacks(); }
 
+  // Round where an eliminated team's run ended — for the condensed standings row. Their last
+  // knockout match (by bracket order) is where they bowed out; no knockout match = group stage.
+  function exitRound(name){
+    var ko=koMatches(), idx=-1;
+    ko.forEach(function(m,i){
+      if(!hasResult(m)) return;
+      if(teamBits(m.team1).name===name || teamBits(m.team2).name===name) idx=i;
+    });
+    if(idx<0) return 'Group stage';
+    return idx<16?'Round of 32' : idx<24?'Round of 16' : idx<28?'Quarter-final'
+         : idx<30?'Semi-final' : idx===30?'3rd-place play-off' : 'Final';
+  }
+
   // ===== Overall ranking: all 48 teams merged into one league table =====
   function renderRanking(){
     var host=document.getElementById('rankHost'); if(!host) return;
@@ -485,31 +508,47 @@
 
     var alive=aliveSet();   // teams still in the competition (the same set the footer ticker uses)
 
-    // Form guide: each team's results in match order (finished group games only).
-    var form={}; Object.keys(STATS).forEach(function(n){ form[n]=[]; });
-    MATCHES.filter(function(m){ return m.group && hasResult(m); })
-      .sort(function(a,b){ return matchDate(a)-matchDate(b); })
-      .forEach(function(m){
-        var t1=matchName(m.team1), t2=matchName(m.team2);
-        if(!t1||!t2||!form[t1]||!form[t2]) return;
-        var g1=m.score.ft[0], g2=m.score.ft[1];
-        form[t1].push(g1>g2?'W':g1<g2?'L':'D');
-        form[t2].push(g2>g1?'W':g2<g1?'L':'D');
-      });
+    // Full-tournament record for the table: clone the group-stage STATS, then layer the knockout
+    // games on top. STATS itself stays group-only — it drives qualification, the group ranking and
+    // the wooden spoon, all group-stage by definition. A knockout tie is a win for the side that
+    // progressed and a loss for the side knocked out (penalty shoot-outs included); goals added are
+    // the score on the pitch (extra time if it was played). Form chips list every game in date order.
+    var rec={}, form={};
+    Object.keys(STATS).forEach(function(n){ var s=STATS[n];
+      rec[n]={pld:s.pld,w:s.w,d:s.d,l:s.l,gf:s.gf,ga:s.ga,pts:s.pts}; form[n]=[]; });
+    MATCHES.filter(hasResult).sort(function(a,b){ return matchDate(a)-matchDate(b); }).forEach(function(m){
+      var t1=teamBits(m.team1).name, t2=teamBits(m.team2).name;
+      if(!rec[t1]||!rec[t2]) return;
+      var sc=m.score.et||m.score.ft, g1=sc[0], g2=sc[1];      // goals scored (extra time if played)
+      var r1, r2;
+      if(m.group){ r1=g1>g2?'W':g1<g2?'L':'D'; r2=g2>g1?'W':g2<g1?'L':'D'; }
+      else { var w=winnerOf(m); r1=w===0?'W':w===1?'L':'D'; r2=w===1?'W':w===0?'L':'D'; }
+      form[t1].push(r1); form[t2].push(r2);
+      if(m.group) return;                                      // group games are already in STATS
+      var a=rec[t1], b=rec[t2];
+      a.pld++; b.pld++; a.gf+=g1; a.ga+=g2; b.gf+=g2; b.ga+=g1;
+      if(r1==='W'){ a.w++; a.pts+=3; b.l++; }
+      else if(r1==='L'){ a.l++; b.w++; b.pts+=3; }
+      else { a.d++; b.d++; a.pts++; b.pts++; }
+    });
 
     // One big league table across all 48 teams (points, then GD, then goals scored).
-    var teams=Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:STATS[n]}; }).sort(cmp);
+    var teams=Object.keys(STATS).map(function(n){ return {name:n, flag:TEAM_FLAG[n], s:rec[n]}; }).sort(cmp);
 
     function rowHTML(t,rank){
       var played=t.s.pld>0, gv=gd(t.s);
       var isAlive=!!alive[t.name];
       var own=OWNERS[t.name]?'<span class="owner">'+OWNERS[t.name]+'</span>':'<span class="owner" style="opacity:.45">unassigned</span>';
-      var chips=(form[t.name]||[]).map(function(r){ return '<span class="form-chip '+r.toLowerCase()+'">'+r+'</span>'; }).join('');
       var posCls=rank===1?'p1':rank===2?'p2':rank===3?'p3':'';
       var cls = !played ? 'notplayed' : (isAlive ? 'alive' : 'elim');
-      return '<tr class="'+cls+'">'+
-        '<td><span class="rank-pos '+posCls+'">'+rank+'</span></td>'+
-        '<td class="team"><span class="flag">'+flagHTML(t.flag)+'</span><span class="tname">'+t.name+'</span>'+own+'</td>'+
+      var rankCell='<td><span class="rank-pos '+posCls+'">'+rank+'</span></td>';
+      var teamCell='<td class="team"><span class="flag">'+flagHTML(t.flag)+'</span><span class="tname">'+t.name+'</span>'+own+'</td>';
+      // Eliminated teams collapse to a single compact line — name, owner, where they went out —
+      // so the teams still in it keep room for their full form guide.
+      if(cls==='elim') return '<tr class="elim slim">'+rankCell+teamCell+
+        '<td class="exit" colspan="5">'+exitRound(t.name)+'</td></tr>';
+      var chips=(form[t.name]||[]).map(function(r){ return '<span class="form-chip '+r.toLowerCase()+'">'+r+'</span>'; }).join('');
+      return '<tr class="'+cls+'">'+rankCell+teamCell+
         '<td><span class="form">'+chips+'</span></td>'+
         '<td>'+t.s.w+'</td>'+
         '<td>'+t.s.d+'</td>'+
@@ -517,14 +556,26 @@
         '<td class="rank-gd">'+(played?(gv>0?'+':'')+gv:'&mdash;')+'</td></tr>';
     }
 
-    var html='';
-    for(var c=0;c<3;c++){
-      var rows=teams.slice(c*16,c*16+16).map(function(t,i){ return rowHTML(t,c*16+i+1); }).join('');
-      html+='<div class="rank-col"><table class="rank-tbl">'+
-        '<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>W</th><th>D</th><th>L</th><th>GD</th></tr></thead>'+
-        '<tbody>'+rows+'</tbody></table></div>';
-    }
-    host.innerHTML=html;
+    // Group the table by status: teams still in it fill the left columns, eliminated teams collect in
+    // the right column(s) as compact lines — rather than being interleaved by record (which left an
+    // out side like the Netherlands sitting up at 6th). Within each group rows stay sorted by record.
+    // Columns are balanced by visual height (a condensed row is ~half a full one), so the survivors
+    // get the room while the "out" teams pack down on the right.
+    var isElim=function(t){ return t.s.pld>0 && !alive[t.name]; };
+    var ordered=teams.filter(function(t){ return !isElim(t); }).concat(teams.filter(isElim));
+    var weight=function(t){ return isElim(t) ? 0.5 : 1; };
+    var target=ordered.reduce(function(a,t){ return a+weight(t); },0)/3;
+    var cols=[[],[],[]], ci=0, acc=0;
+    ordered.forEach(function(t,idx){
+      if(ci<2 && acc>=target){ ci++; acc=0; }
+      cols[ci].push({t:t, rank:idx+1}); acc+=weight(t);
+    });
+
+    var thead='<thead><tr><th></th><th class="team">Team / owner</th><th>Form</th><th>W</th><th>D</th><th>L</th><th>GD</th></tr></thead>';
+    host.innerHTML=cols.map(function(items){
+      return '<div class="rank-col"><table class="rank-tbl">'+thead+
+        '<tbody>'+items.map(function(it){ return rowHTML(it.t, it.rank); }).join('')+'</tbody></table></div>';
+    }).join('');
     fitTables('#rankHost .rank-col');
   }
 
@@ -606,7 +657,7 @@
     if(m.live){ right='<span class="live-badge">LIVE '+m.live.min+'</span>'; s1=m.live.s[0]; s2=m.live.s[1]; }
     else if(res){
       s1=m.score.ft[0]; s2=m.score.ft[1];
-      right='<span class="dm-when">'+(m.score.pen?'pens '+m.score.pen[0]+'–'+m.score.pen[1]:(m.score.et?'AET':'FT'))+'</span>';
+      right='<span class="dm-when">'+(m.score.p?'pens '+m.score.p[0]+'–'+m.score.p[1]:(m.score.et?'AET':'FT'))+'</span>';
     }else{ right='<span class="dm-when">'+kickoff(m).time+'</span>'; }
     function row(b,goals,win){
       return '<div class="dm-row'+(win?' win':'')+'">'+
@@ -667,9 +718,10 @@
     return grp.length>0 && grp.every(hasResult);
   }
   // Tie winners: penalties decide if taken, else extra time, else full time.
+  // openfootball stores the shoot-out under score.p (et = after extra time, ft = 90 min).
   function winnerOf(m){
     if(!hasResult(m)) return null;
-    var s=m.score, p=s.pen||s.et||s.ft;
+    var s=m.score, p=s.p||s.et||s.ft;
     if(p[0]>p[1]) return 0;
     if(p[1]>p[0]) return 1;
     return null;
@@ -681,8 +733,11 @@
         (b.owner?'<i class="t-owner">'+b.owner+'</i>':'')+
         (goals!=null?'<span class="g">'+goals+'</span>':'')+'</div>';
     }
+    var note = res && m.score.p ? 'pens '+m.score.p[0]+'–'+m.score.p[1]
+             : res && m.score.et ? 'AET' : '';
     return '<div class="tie" style="--accent:'+PAL[i%PAL.length]+'">'+
-      slot(t1,res?m.score.ft[0]:null,w===0)+slot(t2,res?m.score.ft[1]:null,w===1)+'</div>';
+      slot(t1,res?m.score.ft[0]:null,w===0)+slot(t2,res?m.score.ft[1]:null,w===1)+
+      (note?'<div class="tie-note">'+note+'</div>':'')+'</div>';
   }
   function emptyTies(n){
     var s=''; for(var i=0;i<n;i++) s+='<div class="tie"><div class="slot empty">&mdash;</div><div class="slot empty">&mdash;</div></div>';
