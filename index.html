@@ -847,10 +847,10 @@
 
   // ===== Screen rotation =====
   var SCREENS=[
-    {id:'scr-days', render:renderDays},
-    {id:'scr-ranking', render:renderRanking},
-    {id:'scr-bracket', render:renderBracket, ko:true},
-    {id:'scr-prizes', ko:true}
+    {id:'scr-days', render:renderDays},                        // fixtures — 20s default
+    {id:'scr-ranking', render:renderRanking},                  // form/standings — 20s default
+    {id:'scr-bracket', render:renderBracket, ko:true, hold:40000},  // bracket — longer dwell to read the tree
+    {id:'scr-prizes', ko:true, hold:10000}                     // prizes — quick glance
   ];
   function activeScreens(){
     var ko=isKnockoutPhase();
