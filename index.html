@@ -54,6 +54,11 @@
   #refreshBtn{ font:inherit; font-weight:800; border:0; border-radius:10px; padding:7px 13px; font-size:15px;
     background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
   #refreshBtn:hover{ background:rgba(255,255,255,.3); }
+  /* Header countdown ring: fills over the current screen's dwell so you can see how long is left. */
+  #dwellRing{ width:clamp(24px,3.6vh,34px); height:clamp(24px,3.6vh,34px); flex:none; transform:rotate(-90deg); }
+  #dwellRing circle{ fill:none; stroke-width:3.2; }
+  #dwellRing .ring-track{ stroke:rgba(255,255,255,.25); }
+  #dwellRing .ring-prog{ stroke:var(--sun); stroke-linecap:round; stroke-dasharray:100; stroke-dashoffset:100; }
 
   /* ===== Rotating stage ===== */
   #stage{ position:relative; flex:1; overflow:hidden; container-type:size; } /* cqh below = stage height, so dense screens auto-fit around header + ticker */
@@ -256,6 +261,9 @@
   <span class="grow"></span>
   <span id="databar"><span class="dot pulse" id="statusDot"></span><span id="statusText" class="muted">Connecting to live scores&hellip;</span></span>
   <nav id="dotsNav" aria-label="Screens"></nav>
+  <svg id="dwellRing" viewBox="0 0 36 36" aria-hidden="true"><title>Time on this screen</title>
+    <circle class="ring-track" cx="18" cy="18" r="15.9155"></circle>
+    <circle class="ring-prog" cx="18" cy="18" r="15.9155"></circle></svg>
   <button id="refreshBtn" title="Refresh scores">&#8635;</button>
 </header>
 
@@ -847,8 +855,8 @@
 
   // ===== Screen rotation =====
   var SCREENS=[
-    {id:'scr-days', render:renderDays},                        // fixtures — 20s default
-    {id:'scr-ranking', render:renderRanking},                  // form/standings — 20s default
+    {id:'scr-days', render:renderDays, hold:10000},            // fixtures — quick
+    {id:'scr-ranking', render:renderRanking, hold:15000},      // form/standings
     {id:'scr-bracket', render:renderBracket, ko:true, hold:40000},  // bracket — longer dwell to read the tree
     {id:'scr-prizes', ko:true, hold:10000}                     // prizes — quick glance
   ];
@@ -870,9 +878,17 @@
       nav.appendChild(d);
     });
   }
+  var dwellAnim=null;   // Web-Animations handle for the header countdown ring
+  function startDwellRing(ms){
+    var prog=document.querySelector('#dwellRing .ring-prog'); if(!prog) return;
+    if(dwellAnim){ dwellAnim.cancel(); dwellAnim=null; }            // snap back to empty, then fill afresh
+    if(reduceMotion || !prog.animate){ prog.style.strokeDashoffset='100'; return; } // no smooth fill under reduced motion
+    dwellAnim=prog.animate([{strokeDashoffset:100},{strokeDashoffset:0}], {duration:ms, easing:'linear', fill:'forwards'});
+  }
   function resetTimer(){
     clearTimeout(timer);
     var act=activeScreens(), hold=(act[cur] && act[cur].hold) || ROTATE_MS; // per-screen dwell, default ROTATE_MS
+    startDwellRing(hold);   // header ring fills over exactly this screen's dwell
     timer=setTimeout(function(){ showScreen(cur+1); resetTimer(); }, hold);
   }
   document.addEventListener('keydown', function(e){
